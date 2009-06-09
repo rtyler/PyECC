@@ -21,7 +21,7 @@ install: default
 clean:
 	rm -f *.o *~ seccure-key seccure-encrypt seccure-decrypt seccure-sign \
 	seccure-verify seccure-signcrypt seccure-veridec \
-	seccure-dh # seccure.1 seccure.1.html
+	seccure-dh  seccure.1 seccure.1.html
 
 rebuild: clean default
 
