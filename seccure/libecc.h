@@ -29,6 +29,12 @@
 #define REQUIRED_LIBGCRYPT "1.4.1"
 
 /**
+ * Default curve to use when encrypting, etc
+ */
+#define DEFAULT_CURVE "p160"
+
+
+/**
  * ::ECC_KeyPair denotes a structure to hold the public/private
  * keys necessary for ECC sign/verify/encrypt and decrypting.
  */
@@ -41,16 +47,32 @@ typedef struct _ECC_KeyPair* ECC_KeyPair;
 /**
  * ::ECC_Data is simply a shortcut to an allocated void pointer
  */
-struct {
+struct _ECC_Data {
 	void *data;
-} _ECC_Data;
-typedef struct _ECC_Data ECC_Data;
+};
+typedef struct _ECC_Data* ECC_Data;
+
+/**
+ * ::ECC_Options is a container for options some ecc_ functions
+ */
+struct _ECC_Options {
+	char *curve;
+}; 
+typedef struct _ECC_Options* ECC_Options;
 
 
 /**
  * Allocate an empty ::ECC_KeyPair
  */
 ECC_KeyPair ecc_new_keypair(void);
+/**
+ * Allocate an empty ::ECC_Data
+ */
+ECC_Data ecc_new_data(void);
+/**
+ * Allocate an empty ::ECC_Options
+ */
+ECC_Options ecc_new_options(void);
 
 
 /**
@@ -96,8 +118,12 @@ ECC_Data ecc_sign(void *data, ECC_KeyPair keypair);
  * Verify the signature of the data block using the specified public key
  *
  * @return True/False
+ * @param data An allocated buffer against which to verify the signature
+ * @param signature The ECC generated signature 
+ * @param keypair ::ECC_KeyPair object (only needs the "priv" member to contain data)
+ * @param opts ::ECC_Options object, if user desires to use a different curve
  */
-bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair);
+bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair, ECC_Options opts);
 
 
 

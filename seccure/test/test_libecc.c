@@ -17,6 +17,7 @@
  *  02111-1307 USA
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +25,9 @@
 #include <glib.h>
 
 #include "libecc.h"
+
+#define DEFAULT_DATA "This message will be signed"
+#define DEFAULT_SIG "$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq"
 
 
 /**
@@ -46,13 +50,16 @@
  */
 void __test_verify()
 {
-	char *data = "This message will be signed";
-	char *signature = "$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq";
 	ECC_KeyPair kp = ecc_new_keypair();
 	kp->priv = "my private key";
 	kp->pub = "8W;>i^H0qi|J&$coR5MFpR*Vn";
 
-	g_assert(ecc_verify(data, signature, kp));
+	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, kp, NULL));
+}
+
+void __test_verify_nullkp()
+{
+	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, NULL, NULL) == false);
 }
 
 
@@ -76,7 +83,8 @@ int main(int argc, char **argv)
 	g_test_init(&argc, &argv, NULL);
 
 	g_test_add_func("/libecc/ecc_new_keypair", __test_new_keypair);
-	g_test_add_func("/libecc/ecc_verify", __test_verify);
+	g_test_add_func("/libecc/ecc_verify/default", __test_verify);
+	g_test_add_func("/libecc/ecc_verify/null_keypair", __test_verify_nullkp);
 
 	return g_test_run();
 }

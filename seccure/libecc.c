@@ -23,6 +23,7 @@
 
 #include <gcrypt.h>
 
+#include "curves.h"
 #include "ecc.h"
 #include "libecc.h"
 
@@ -59,7 +60,6 @@ bool __init_ecc()
 	if (gcry_err_code(err))
 		__gwarning("Cannot enable libgcrupt's secure random number generator", err);
 		
-
 	return true;
 }
 
@@ -70,12 +70,43 @@ ECC_KeyPair ecc_new_keypair()
 	return kp;
 }
 
-bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair)
+ECC_Data ecc_new_data()
+{
+	ECC_Data data = (ECC_Data)(malloc(sizeof(struct _ECC_Data)));
+	bzero(data, sizeof(struct _ECC_Data));
+	return data;
+}
+
+ECC_Options ecc_new_options()
+{
+	ECC_Options opts = (ECC_Options)(malloc(sizeof(struct _ECC_Options)));
+	bzero(opts, sizeof(struct _ECC_Options));
+	return opts;
+}
+
+bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair, ECC_Options opts)
 {
 	if (!__init_ecc()) {
 		__warning("Failed to initialize libecc for whatever reason");
 		return false;
 	}
+
+	if ( (keypair == NULL) || (keypair->priv == NULL) ) {
+		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
+		return false;
+	}
+
+	struct curve_params *c_params;
+	//gcry_error_t err;
+	//gcry_mpi_t data, sig;
+	
+	/*
+	 * Pull out the curve if it's passed in on the opts object
+	 */
+	if ( (opts != NULL) && (opts->curve != NULL) ) 
+		c_params = curve_by_name(opts->curve);
+	else
+		c_params = curve_by_name(DEFAULT_CURVE);
 		
 	return false;
 }
