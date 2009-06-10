@@ -1,4 +1,4 @@
-LDFLAGS = -lgcrypt -lglib
+LDFLAGS = -lgcrypt 
 CFLAGS = -g -Wall -Werror -fPIC
 
 default: binaries doc libecc.so
