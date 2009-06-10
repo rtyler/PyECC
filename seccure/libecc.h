@@ -16,6 +16,17 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  *  02111-1307 USA
  */
-#include "ecc.h"
+
+#ifndef _LIBECC_H_
+#define _LIBECC_H_
+
+/*
+ * ecc_keygen(entropy)
+ * ecc_encrypt(data, private)
+ * ecc_decrypt(cipherdata, public)
+ * ecc_sign(data, private)
+ * ecc_verify(signeddata, public)
+ */
 
 
+#endif
