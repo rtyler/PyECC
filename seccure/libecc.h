@@ -22,6 +22,12 @@
 
 #include <stdbool.h>
 
+
+/**
+ * Required version of libgcrypt for libecc to function
+ */
+#define REQUIRED_LIBGCRYPT "1.4.1"
+
 /**
  * ::ECC_KeyPair denotes a structure to hold the public/private
  * keys necessary for ECC sign/verify/encrypt and decrypting.

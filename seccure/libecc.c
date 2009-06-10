@@ -16,22 +16,51 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  *  02111-1307 USA
  */
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <strings.h>
+
+#include <gcrypt.h>
 
 #include "ecc.h"
 #include "libecc.h"
 
 
 /**
+ * Print a warning to stderr
+ */
+void __gwarning(const char *message, gcry_error_t err)
+{
+	fprintf(stderr, "WARNING: %s : %s\n", message, gcry_strerror(err));
+}
+void __warning(const char *message) 
+{
+		fprintf(stderr, "WARNING: %s\n", message);
+}
+
+/**
  * Handle initializing libgcrypt and some other preliminary necessities
  */
 bool __init_ecc() 
 {
+	gcry_error_t err;
+	
+	if (!gcry_check_version(REQUIRED_LIBGCRYPT)) {
+		__gwarning("Incorrect libgcrypt version", err);
+		return false;
+	}
 
-	return false;
+	err = gcry_control(GCRYCTL_INIT_SECMEM, 1);
+	if (gcry_err_code(err))
+		__gwarning("Cannot enable libgcrypt's secure memory management", err);
+
+	err = gcry_control(GCRYCTL_USE_SECURE_RNDPOOL, 1);
+	if (gcry_err_code(err))
+		__gwarning("Cannot enable libgcrupt's secure random number generator", err);
+		
+
+	return true;
 }
 
 ECC_KeyPair ecc_new_keypair()
@@ -43,5 +72,10 @@ ECC_KeyPair ecc_new_keypair()
 
 bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair)
 {
+	if (!__init_ecc()) {
+		__warning("Failed to initialize libecc for whatever reason");
+		return false;
+	}
+		
 	return false;
 }
