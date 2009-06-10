@@ -113,7 +113,8 @@ ECC_Data ecc_decrypt(void *encrypted, ECC_KeyPair keypair);
  *
  * @return An allocated buffer with the signature of the data block
  * @param data An allocated buffer to generate a signature against
- * @param keypair ::ECC_KeyPair to use when generating the signature
+ * @param keypair ::ECC_KeyPair to use when generating the signature 
+ * (only needs "priv" member to contain data)
  */
 ECC_Data ecc_sign(void *data, ECC_KeyPair keypair);
 
@@ -124,10 +125,10 @@ ECC_Data ecc_sign(void *data, ECC_KeyPair keypair);
  * @return True/False
  * @param data An allocated buffer against which to verify the signature
  * @param signature The ECC generated signature 
- * @param keypair ::ECC_KeyPair object (only needs the "priv" member to contain data)
+ * @param keypair ::ECC_KeyPair object (only needs the "pub" member to contain data)
  * @param opts ::ECC_Options object, if user desires to use a different curve
  */
-bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair, ECC_Options opts);
+bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts);
 
 
 

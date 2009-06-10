@@ -26,6 +26,7 @@
 #include "curves.h"
 #include "ecc.h"
 #include "libecc.h"
+#include "serialize.h"
 
 
 /**
@@ -86,27 +87,36 @@ ECC_Options ecc_new_options()
 	 */
 	opts->secure_malloc = true;
 	opts->curve = DEFAULT_CURVE;
+
 	return opts;
 }
 
-bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair, ECC_Options opts)
+bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts)
 {
 	if (!__init_ecc()) {
 		__warning("Failed to initialize libecc for whatever reason");
 		return false;
 	}
 
-	if ( (data == NULL) || (signature == NULL) ) {
-		__warning("Invalid `data` or `signature` arguments passed to ecc_verify()");
+	/*
+	 * Preliminary argument checks, just for sanity of the library
+	 */
+	if ( (data == NULL) || (strlen(data) == 0) ) {
+		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		return false;
 	}
-
-	if ( (keypair == NULL) || (keypair->priv == NULL) ) {
+	if ( (signature == NULL) || (strlen(signature) == 0) ) {
+		__warning("Invalid or empty `signature` argument passed to ecc_verify()");
+		return false;
+	}
+	if ( (keypair == NULL) || (keypair->pub == NULL) ) {
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		return false;
 	}
 
+
 	struct curve_params *c_params;
+	//struct affine_point _ap;
 	//gcry_error_t err;
 	//gcry_mpi_t data, sig;
 	
