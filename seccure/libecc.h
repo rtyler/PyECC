@@ -54,9 +54,11 @@ typedef struct _ECC_Data* ECC_Data;
 
 /**
  * ::ECC_Options is a container for options some ecc_ functions
+ *
  */
 struct _ECC_Options {
-	char *curve;
+	char *curve; /*!< curve will be defaulted to ::DEFAULT_CURVE by ecc_new_options() */
+	bool secure_malloc; /*!< secure_malloc will be defaulted to true by ecc_new_options() */
 }; 
 typedef struct _ECC_Options* ECC_Options;
 

@@ -81,6 +81,11 @@ ECC_Options ecc_new_options()
 {
 	ECC_Options opts = (ECC_Options)(malloc(sizeof(struct _ECC_Options)));
 	bzero(opts, sizeof(struct _ECC_Options));
+	/*
+	 * Setup the default values of the ::ECC_Options object
+	 */
+	opts->secure_malloc = true;
+	opts->curve = DEFAULT_CURVE;
 	return opts;
 }
 
