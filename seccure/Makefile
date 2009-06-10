@@ -53,28 +53,6 @@ seccure-veridec: seccure-key
 seccure-dh: seccure-key
 	ln -f seccure-key seccure-dh
 
-seccure.o: seccure.c
-	$(CC) $(CFLAGS) -c seccure.c
-
-numtheory.o: numtheory.c numtheory.h
-	$(CC) $(CFLAGS) -c numtheory.c
-
-ecc.o: ecc.c ecc.h
-	$(CC) $(CFLAGS) -c ecc.c
-
-curves.o: curves.c curves.h
-	$(CC) $(CFLAGS) -c curves.c
-
-serialize.o: serialize.c serialize.h
-	$(CC) $(CFLAGS) -c serialize.c
-
-protocol.o: protocol.c protocol.h
-	$(CC) $(CFLAGS) -c protocol.c
-
-aes256ctr.o: aes256ctr.c aes256ctr.h
-	$(CC) $(CFLAGS) -c aes256ctr.c
-
-
 seccure.1: seccure.manpage.xml
 	xmltoman seccure.manpage.xml > seccure.1
 
