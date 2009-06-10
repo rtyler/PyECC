@@ -62,6 +62,25 @@ void __test_verify_nullkp()
 	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, NULL, NULL) == false);
 }
 
+void __test_verify_nulldata()
+{
+	ECC_KeyPair kp = ecc_new_keypair();
+	kp->priv = "my private key";
+	kp->pub = "8W;>i^H0qi|J&$coR5MFpR*Vn";
+
+	g_assert(ecc_verify(NULL, DEFAULT_SIG, kp, NULL) == false);
+}
+
+void __test_verify_nullsig()
+{
+	ECC_KeyPair kp = ecc_new_keypair();
+	kp->priv = "my private key";
+	kp->pub = "8W;>i^H0qi|J&$coR5MFpR*Vn";
+
+	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, NULL) == false);
+}
+	
+
 
 /**
  * __test_new_keypair() will test ecc_new_keypair() and make sure it generates an
@@ -85,6 +104,8 @@ int main(int argc, char **argv)
 	g_test_add_func("/libecc/ecc_new_keypair", __test_new_keypair);
 	g_test_add_func("/libecc/ecc_verify/default", __test_verify);
 	g_test_add_func("/libecc/ecc_verify/null_keypair", __test_verify_nullkp);
+	g_test_add_func("/libecc/ecc_verify/null_data", __test_verify_nulldata);
+	g_test_add_func("/libecc/ecc_verify/null_sig", __test_verify_nullsig);
 
 	return g_test_run();
 }

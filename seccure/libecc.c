@@ -96,6 +96,11 @@ bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair, ECC_Options op
 		return false;
 	}
 
+	if ( (data == NULL) || (signature == NULL) ) {
+		__warning("Invalid `data` or `signature` arguments passed to ecc_verify()");
+		return false;
+	}
+
 	if ( (keypair == NULL) || (keypair->priv == NULL) ) {
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		return false;

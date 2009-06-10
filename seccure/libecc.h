@@ -112,6 +112,8 @@ ECC_Data ecc_decrypt(void *encrypted, ECC_KeyPair keypair);
  * Sign the specified block of data using the private key specified
  *
  * @return An allocated buffer with the signature of the data block
+ * @param data An allocated buffer to generate a signature against
+ * @param keypair ::ECC_KeyPair to use when generating the signature
  */
 ECC_Data ecc_sign(void *data, ECC_KeyPair keypair);
 
