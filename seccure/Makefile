@@ -1,9 +1,12 @@
-CFLAGS = -O2 -Wall -Werror
+LDFLAGS = -lgcrypt -lglib
+CFLAGS = -g -Wall -Werror -fPIC
 
-default: binaries doc
+default: binaries doc libecc.so
 
 binaries: seccure-key seccure-encrypt seccure-decrypt seccure-sign \
-	seccure-verify seccure-signcrypt seccure-veridec seccure-dh
+	seccure-verify seccure-signcrypt seccure-veridec seccure-dh \
+
+OBJS = numtheory.o libecc.o ecc.o serialize.o protocol.o curves.o aes256ctr.o
 
 doc: seccure.1 seccure.1.html
 
@@ -21,16 +24,17 @@ install: default
 clean:
 	rm -f *.o *~ seccure-key seccure-encrypt seccure-decrypt seccure-sign \
 	seccure-verify seccure-signcrypt seccure-veridec \
-	seccure-dh  seccure.1 seccure.1.html
+	seccure-dh  seccure.1 seccure.1.html *.so*
 
 rebuild: clean default
 
 
-
-seccure-key: seccure.o numtheory.o ecc.o serialize.o protocol.o curves.o aes256ctr.o
-	$(CC) $(CFLAGS) -o seccure-key -lgcrypt seccure.o numtheory.o ecc.o \
-	curves.o serialize.o protocol.o aes256ctr.o
+seccure-key: seccure.o $(OBJS)
+	$(CC) $(CFLAGS) -o seccure-key $(LDFLAGS) seccure.o $(OBJS)
 	strip seccure-key
+
+libecc.so: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -Wl -o libecc.so $(OBJS) 
 
 seccure-encrypt: seccure-key
 	ln -f seccure-key seccure-encrypt
