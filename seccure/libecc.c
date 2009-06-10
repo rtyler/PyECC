@@ -17,8 +17,31 @@
  *  02111-1307 USA
  */
 
+#include <stdlib.h>
+#include <stdbool.h>
+#include <strings.h>
+
 #include "ecc.h"
 #include "libecc.h"
 
 
+/**
+ * Handle initializing libgcrypt and some other preliminary necessities
+ */
+bool __init_ecc() 
+{
 
+	return false;
+}
+
+ECC_KeyPair ecc_new_keypair()
+{
+	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
+	bzero(kp, sizeof(struct _ECC_KeyPair));
+	return kp;
+}
+
+bool ecc_verify(void *data, void *signature, ECC_KeyPair keypair)
+{
+	return false;
+}

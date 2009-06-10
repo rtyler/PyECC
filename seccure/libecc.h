@@ -22,23 +22,14 @@
 
 #include <stdbool.h>
 
-
-/*
- * ecc_keygen(entropy)
- * ecc_encrypt(data, private)
- * ecc_decrypt(cipherdata, public)
- * ecc_sign(data, private)
- * ecc_verify(signeddata, public)
- */
-
 /**
  * ::ECC_KeyPair denotes a structure to hold the public/private
  * keys necessary for ECC sign/verify/encrypt and decrypting.
  */
-struct {
+struct _ECC_KeyPair {
 	void *priv;
 	void *pub;
-} _ECC_KeyPair;
+};
 typedef struct _ECC_KeyPair* ECC_KeyPair;
 
 /**
@@ -48,6 +39,12 @@ struct {
 	void *data;
 } _ECC_Data;
 typedef struct _ECC_Data ECC_Data;
+
+
+/**
+ * Allocate an empty ::ECC_KeyPair
+ */
+ECC_KeyPair ecc_new_keypair(void);
 
 
 /**
