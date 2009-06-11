@@ -553,101 +553,100 @@ int app_decrypt(void)
 
 void app_sign(void)
 {
-  struct curve_params *cp;
-  char *privkey, *md;
-  gcry_md_hd_t mh;
-  gcry_error_t err;
-  gcry_mpi_t d, sig;
-  FILE *sigfile;
+	struct curve_params *cp;
+	char *privkey, *md;
+	gcry_md_hd_t mh;
+	gcry_error_t err;
+	gcry_mpi_t d, sig;
+	FILE *sigfile;
 
-  if (opt_sigappend) {
-    opt_sigcopy = 1;
-    if (opt_sigfile)
-      fatal("The options -s and -a may not be combined");
-  }
+	if (opt_sigappend) {
+		opt_sigcopy = 1;
+		if (opt_sigfile)
+			fatal("The options -s and -a may not be combined");
+	}
 
-  if (! opt_curve) {
-    opt_curve = DEFAULT_CURVE;
-    fprintf(stderr, "Assuming curve " DEFAULT_CURVE ".\n");
-  }
+	if (! opt_curve) {
+		opt_curve = DEFAULT_CURVE;
+		fprintf(stderr, "Assuming curve " DEFAULT_CURVE ".\n");
+	}
 
-  if ((cp = curve_by_name(opt_curve))) {
+	if ((cp = curve_by_name(opt_curve))) {
+		if (opt_verbose) {
+			print_quiet("VERSION: ", 0);
+			fprintf(stderr, VERSION "\n"); 
+			print_quiet("CURVE: ", 0); 
+			fprintf(stderr, "%s\n", cp->name); 
+		}
 
-    if (opt_verbose) {
-      print_quiet("VERSION: ", 0);
-      fprintf(stderr, VERSION "\n"); 
-      print_quiet("CURVE: ", 0); 
-      fprintf(stderr, "%s\n", cp->name); 
-    }
+		if (! (privkey = gcry_malloc_secure(32)))
+			fatal("Out of secure memory");
+		read_passphrase(privkey, "private key");
+		d = hash_to_exponent(privkey, cp);
+		gcry_free(privkey);
 
-    if (! (privkey = gcry_malloc_secure(32)))
-      fatal("Out of secure memory");
-    read_passphrase(privkey, "private key");
-    d = hash_to_exponent(privkey, cp);
-    gcry_free(privkey);
+		err = gcry_md_open(&mh, GCRY_MD_SHA512, 0);
+		if (gcry_err_code(err))
+			fatal_gcrypt("Cannot initialize SHA512", err);
 
-    err = gcry_md_open(&mh, GCRY_MD_SHA512, 0);
-    if (gcry_err_code(err))
-      fatal_gcrypt("Cannot initialize SHA512", err);
+		if (isatty(opt_fdin))
+			print_quiet("Go ahead and type your message ...\n", 0);
 
-    if (isatty(opt_fdin))
-      print_quiet("Go ahead and type your message ...\n", 0);
+		verisign_loop(opt_fdin, opt_fdout, &mh, NULL, 0, opt_sigcopy);
 
-    verisign_loop(opt_fdin, opt_fdout, &mh, NULL, 0, opt_sigcopy);
+		gcry_md_final(mh);
+		md = (char*)gcry_md_read(mh, 0);
 
-    gcry_md_final(mh);
-    md = (char*)gcry_md_read(mh, 0);
+		if (opt_verbose) {
+			int i;
+			print_quiet("SHA512: ", 0); 
+			for(i = 0; i < 64; i++)
+				fprintf(stderr, "%02x", (unsigned char)md[i]);
+			fprintf(stderr, "\n");
+		}
 
-    if (opt_verbose) {
-      int i;
-      print_quiet("SHA512: ", 0); 
-      for(i = 0; i < 64; i++)
-	fprintf(stderr, "%02x", (unsigned char)md[i]);
-      fprintf(stderr, "\n");
-    }
+		sig = ECDSA_sign(md, d, cp);
+		gcry_mpi_release(d);
+		gcry_md_close(mh);
 
-    sig = ECDSA_sign(md, d, cp);
-    gcry_mpi_release(d);
-    gcry_md_close(mh);
+		if (opt_sigfile) {
+			if (! (sigfile = fopen(opt_sigfile, "w")))
+				fatal_errno("Cannot open signature file", errno);
+		}
+		else
+			sigfile = stderr;
 
-    if (opt_sigfile) {
-      if (! (sigfile = fopen(opt_sigfile, "w")))
-	fatal_errno("Cannot open signature file", errno);
-    }
-    else
-      sigfile = stderr;
+		if (opt_sigbin) {
+			char sigbuf[cp->sig_len_bin];
+			serialize_mpi(sigbuf, cp->sig_len_bin, DF_BIN, sig);
+			if (opt_sigappend)
+				write_block(opt_fdout, sigbuf, cp->sig_len_bin);
+			else
+				if (fwrite(sigbuf, cp->sig_len_bin, 1, sigfile) != 1)
+					fatal_errno("Cannot write signature", errno);
+		}
+		else {
+			char sigbuf[cp->sig_len_compact + 1];
+			serialize_mpi(sigbuf, cp->sig_len_compact, DF_COMPACT, sig);
+			if (opt_sigappend)
+				write_block(opt_fdout, sigbuf, cp->sig_len_compact);
+			else {
+				sigbuf[cp->sig_len_compact] = 0;
+			if (sigfile == stderr)
+				print_quiet("Signature: ", 0);
+			if (fprintf(sigfile, "%s\n", sigbuf) < 0)
+				fatal_errno("Cannot write signature", errno);
+			}
+		}
 
-    if (opt_sigbin) {
-      char sigbuf[cp->sig_len_bin];
-      serialize_mpi(sigbuf, cp->sig_len_bin, DF_BIN, sig);
-      if (opt_sigappend)
-	write_block(opt_fdout, sigbuf, cp->sig_len_bin);
-      else
-	if (fwrite(sigbuf, cp->sig_len_bin, 1, sigfile) != 1)
-	  fatal_errno("Cannot write signature", errno);
-    }
-    else {
-      char sigbuf[cp->sig_len_compact + 1];
-      serialize_mpi(sigbuf, cp->sig_len_compact, DF_COMPACT, sig);
-      if (opt_sigappend)
-	write_block(opt_fdout, sigbuf, cp->sig_len_compact);
-      else {
-	sigbuf[cp->sig_len_compact] = 0;
-	if (sigfile == stderr)
-	  print_quiet("Signature: ", 0);
-	if (fprintf(sigfile, "%s\n", sigbuf) < 0)
-	  fatal_errno("Cannot write signature", errno);
-      }
-    }
+		if (opt_sigfile && fclose(sigfile))
+		fatal_errno("Cannot close signature file", errno);
 
-    if (opt_sigfile && fclose(sigfile))
-      fatal_errno("Cannot close signature file", errno);
-    
-    gcry_mpi_release(sig);
-    curve_release(cp);
-  }
-  else
-    fatal("Invalid curve name");
+		gcry_mpi_release(sig);
+		curve_release(cp);
+	}
+	else
+		fatal("Invalid curve name");
 }
 
 int app_verify(const char *pubkey, const char *sig)
