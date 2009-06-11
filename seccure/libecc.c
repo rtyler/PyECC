@@ -35,17 +35,17 @@
  */
 void __gwarning(const char *message, gcry_error_t err)
 {
-	fprintf(stderr, "WARNING: %s : %s\n", message, gcry_strerror(err));
+	fprintf(stderr, "WARNING (libgcrypt): %s : %s\n", message, gcry_strerror(err));
 }
 void __warning(const char *message) 
 {
-		fprintf(stderr, "WARNING: %s\n", message);
+	fprintf(stderr, "WARNING: %s\n", message);
 }
 
 /**
  * Handle initializing libgcrypt and some other preliminary necessities
  */
-bool __init_ecc() 
+bool __init_ecc(ECC_Options options)
 {
 	gcry_error_t err;
 	
@@ -58,11 +58,22 @@ bool __init_ecc()
 	if (gcry_err_code(err))
 		__gwarning("Cannot enable libgcrypt's secure memory management", err);
 
-	err = gcry_control(GCRYCTL_USE_SECURE_RNDPOOL, 1);
-	if (gcry_err_code(err))
-		__gwarning("Cannot enable libgcrupt's secure random number generator", err);
+	if ( (options != NULL) && (options->secure_random) ) {
+		err = gcry_control(GCRYCTL_USE_SECURE_RNDPOOL, 1);
+		if (gcry_err_code(err))
+			__gwarning("Cannot enable libgcrupt's secure random number generator", err);
+	}
 		
 	return true;
+}
+
+void __del_ecc()
+{
+	gcry_error_t err;
+
+	err = gcry_control(GCRYCTL_TERM_SECMEM);
+	if (gcry_err_code(err))
+		__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
 }
 
 ECC_KeyPair ecc_new_keypair()
@@ -86,16 +97,18 @@ ECC_Options ecc_new_options()
 	/*
 	 * Setup the default values of the ::ECC_Options object
 	 */
-	opts->secure_malloc = true;
+	opts->secure_random = true;
 	opts->curve = DEFAULT_CURVE;
 
 	return opts;
 }
 bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts)
 {
-	if (!__init_ecc()) {
+	bool rc = false;
+
+	if (!__init_ecc(opts)) {
 		__warning("Failed to initialize libecc for whatever reason");
-		return false;
+		goto exit;
 	}
 
 	/*
@@ -103,15 +116,15 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 	 */
 	if ( (data == NULL) || (strlen(data) == 0) ) {
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
-		return false;
+		goto exit;
 	}
 	if ( (signature == NULL) || (strlen(signature) == 0) ) {
 		__warning("Invalid or empty `signature` argument passed to ecc_verify()");
-		return false;
+		goto exit;
 	}
 	if ( (keypair == NULL) || (keypair->pub == NULL) ) {
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
-		return false;
+		goto exit;
 	}
 
 
@@ -122,7 +135,6 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 	gcry_md_hd_t digest;
 	char *digest_buf = NULL;
 	int result = 0;
-	//gcry_mpi_t data, sig;
 	
 	/*
 	 * Pull out the curve if it's passed in on the opts object
@@ -132,22 +144,16 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 	else
 		c_params = curve_by_name(DEFAULT_CURVE);
 	
+
 	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, c_params)) {
 		__warning("Invalid public key");
-		return false;
+		goto bailout;
 	}
-
-	/*
-	union {
-		char compact[c_params->sig_len_compact + 2];
-		char bin[c_params->sig_len_bin];
-	} sig_buffer;
-	*/
 
 	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);
 	if (gcry_err_code(err)) {
 		__gwarning("Failed to initialize SHA-512 message digest", err);
-		return false;
+		goto bailout;
 	}
 
 	/*
@@ -161,12 +167,20 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 						strlen(signature));
 	if (!result) {
 		__warning("Failed to deserialize the signature");
-		return false;
+		goto bailout;
 	}
 
 	result = ECDSA_verify(digest_buf, &_ap, deserialized_sig, c_params);
 	if (result)
-		return true;
-		
-	return false;
+		rc = true;
+
+	bailout:
+		gcry_mpi_release(deserialized_sig);
+		point_release(&_ap);
+		curve_release(c_params);
+		gcry_md_close(digest);
+		goto exit;
+	exit:
+		__del_ecc();
+		return rc;
 }

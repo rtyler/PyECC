@@ -58,7 +58,7 @@ typedef struct _ECC_Data* ECC_Data;
  */
 struct _ECC_Options {
 	char *curve; /*!< curve will be defaulted to ::DEFAULT_CURVE by ecc_new_options() */
-	bool secure_malloc; /*!< secure_malloc will be defaulted to true by ecc_new_options() */
+	bool secure_random; /*!< secure_random enables libgcrypt's secure random number generator, default true */
 }; 
 typedef struct _ECC_Options* ECC_Options;
 
