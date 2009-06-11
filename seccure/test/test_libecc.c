@@ -26,7 +26,7 @@
 
 #include "libecc.h"
 
-#define DEFAULT_DATA "This message will be signed"
+#define DEFAULT_DATA "This message will be signed\n"
 #define DEFAULT_SIG "$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq"
 
 
