@@ -132,6 +132,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 	gcry_error_t err;
 	gcry_mpi_t signature, keyhash;
 	char *digest_buf = NULL;
+	char *privkey_buf = NULL;
 
 	/*
 	 * Pull out the curve if it's passed in on the opts object
@@ -141,6 +142,25 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 	else
 		c_params = curve_by_name(DEFAULT_CURVE);
 
+	/* 
+	 * Process the private key in secure memory
+	 */
+	gcry_md_hd_t key_store;
+	err = gcry_md_open(&key_store, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
+	if (gcry_err_code(err)) {
+		__warning("Could not initialize SHA-256 digest for the private key");
+		goto bailout;
+	}
+	gcry_md_write(key_store, (char *)(keypair->priv), strlen((char *)(keypair->priv)));
+	gcry_md_final(key_store);
+	privkey_buf = (char *)(gcry_md_read(key_store, 0));
+
+	keyhash = hash_to_exponent(privkey_buf, c_params);
+	gcry_md_close(key_store);
+
+	/*
+	 * Open up message digest for the signing
+	 */
 	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);
 	if (gcry_err_code(err)) {
 		__gwarning("Failed to initialize SHA-512 message digest", err);
@@ -159,10 +179,6 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 		goto bailout;
 	}
 
-	keyhash = hash_to_exponent(keypair->priv, c_params);
-	fprintf(stderr, "privkey: %s\n", (char *)keypair->priv);
-	fprintf(stderr, "data: %s\n", data);
-
 	signature = ECDSA_sign(digest_buf, keyhash, c_params);
 
 	if (signature == NULL) {
@@ -176,8 +192,6 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 	serialize_mpi(serialized, c_params->sig_len_compact, DF_COMPACT, signature);
 	rc->data = serialized;
 	
-	fprintf(stderr, "Sig: %s\n", (char *)rc->data);
-
 	bailout:
 		gcry_mpi_release(keyhash);
 		gcry_mpi_release(signature);

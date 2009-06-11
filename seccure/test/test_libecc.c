@@ -141,7 +141,8 @@ void __test_sign()
 	result = ecc_sign(DEFAULT_DATA, kp, NULL);
 
 	g_assert(result != NULL);
-	g_assert(result->data == DEFAULT_SIG);
+	g_assert_cmpstr(result->data, ==, DEFAULT_SIG);
+	g_assert(ecc_verify(DEFAULT_DATA, result->data, kp, NULL));
 }
 
 
