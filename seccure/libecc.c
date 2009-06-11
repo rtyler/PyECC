@@ -261,9 +261,18 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 	result = ECDSA_verify(digest_buf, &_ap, deserialized_sig, c_params);
 	if (result)
 		rc = true;
+	/*
+	 * Calling gcry_mpi_release() here after we're certain we have an object
+	 * and we're certain that it's valid. I don't *think* that this should 
+	 * case a leak in the case above if `result` doesn't exist and we bailout.
+	 *
+	 * Calling gcry_mpi_release() will cause a double free() if placed in bailout
+	 * most likely because somebody inside libgcrypt isn't checking members for NULL
+	 * prior to free()
+	 */
+	gcry_mpi_release(deserialized_sig);
 
 	bailout:
-		gcry_mpi_release(deserialized_sig);
 		point_release(&_ap);
 		curve_release(c_params);
 		gcry_md_close(digest);
