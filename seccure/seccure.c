@@ -652,135 +652,134 @@ void app_sign(void)
 
 int app_verify(const char *pubkey, const char *sig)
 {
-  struct curve_params *cp;
-  struct affine_point Q;
-  gcry_mpi_t s;
-  gcry_md_hd_t mh;
-  gcry_error_t err;
-  char *md;
-  int res = 0;
+	struct curve_params *cp;
+	struct affine_point Q;
+	gcry_mpi_t s;
+	gcry_md_hd_t mh;
+	gcry_error_t err;
+	char *md;
+	int res = 0;
 
-  if (!! sig + !! opt_sigfile + !! opt_sigappend != 1)
-    fatal("Exactly one signature has to be specified");
+	if (!! sig + !! opt_sigfile + !! opt_sigappend != 1)
+		fatal("Exactly one signature has to be specified");
 
-  if (sig && opt_sigbin)
-    fatal("Binary signature is not accepted here");
-  
-  if (opt_curve) {
-    if (! (cp = curve_by_name(opt_curve)))
-      fatal("Invalid curve name");
-  }
-  else
-    if (! (cp = curve_by_pk_len_compact(strlen(pubkey))))
-      fatal("Invalid verification key (wrong length)");
-  
-  if (opt_verbose) {
-    print_quiet("VERSION: ", 0);
-    fprintf(stderr, VERSION "\n"); 
-    print_quiet("CURVE: ", 0);
-    fprintf(stderr, "%s\n", cp->name); 
-  }
-  
-  if (strlen(pubkey) != cp->pk_len_compact)
-    fatal("Invalid verification key (wrong length)");
-  
-  if (decompress_from_string(&Q, pubkey, DF_COMPACT, cp)) {
-    union {
-      char compact[cp->sig_len_compact + 2];
-      char bin[cp->sig_len_bin];
-    } sigbuf;
-    
-    err = gcry_md_open(&mh, GCRY_MD_SHA512, 0);
-    if (gcry_err_code(err))
-      fatal_gcrypt("Cannot initialize SHA512", err);
-    
-    if (opt_sigfile) {
-      FILE *sigfile;
-      if (! (sigfile = fopen(opt_sigfile, "r")))
-	fatal_errno("Cannot open signature file", errno);
+	if (sig && opt_sigbin)
+		fatal("Binary signature is not accepted here");
 
-      if (opt_sigbin) {
-	if (fread(sigbuf.bin, cp->sig_len_bin, 1, sigfile) != 1) {
-	  if (ferror(sigfile))
-	    fatal_errno("Cannot read signature", errno);
-	  else {
-	    print_quiet("Invalid signature (wrong length)!\n", 1);
-	    fclose(sigfile);
-	    goto error;
-	  }
+	if (opt_curve) {
+		if (! (cp = curve_by_name(opt_curve)))
+			fatal("Invalid curve name");
 	}
-      }
-      else {
-	sigbuf.compact[0] = 0;
-	if (! fgets(sigbuf.compact, cp->sig_len_compact + 2, sigfile) && 
-	    ferror(sigfile))
-	  fatal_errno("Cannot read signature", errno);
-	sigbuf.compact[strcspn(sigbuf.compact, " \r\n")] = '\0';
-      }
-      
-      if (fclose(sigfile))
-	fatal_errno("Cannot close signature file", errno);
-    }
+	else
+		if (! (cp = curve_by_pk_len_compact(strlen(pubkey))))
+			fatal("Invalid verification key (wrong length)");
 
-    if (isatty(opt_fdin))
-      print_quiet("Go ahead and type your message ...\n", 0);
-
-    if (opt_sigappend) {
-      if (opt_sigbin)
-	verisign_loop(opt_fdin, opt_fdout, &mh, sigbuf.bin, 
-		      cp->sig_len_bin, opt_sigcopy);
-      else {
-	verisign_loop(opt_fdin, opt_fdout, &mh, sigbuf.compact,
-		      cp->sig_len_compact, opt_sigcopy);
-	sigbuf.compact[cp->sig_len_compact] = 0;
-      }
-    }
-    else
-      verisign_loop(opt_fdin, opt_fdout, &mh, NULL, 0, opt_sigcopy);
-
-    gcry_md_final(mh);
-    md = (char*)gcry_md_read(mh, 0);
-
-    if (opt_verbose) {
-      int i;
-      print_quiet("SHA512: ", 0);
-      for(i = 0; i < 64; i++)
-	fprintf(stderr, "%02x", (unsigned char)md[i]);
-      fprintf(stderr, "\n");
-    }
-	
-    if (! opt_sigbin) {
-      if (! sig)
-	sig = sigbuf.compact;
-      if (strlen(sig) != cp->sig_len_compact) {
-	print_quiet("Invalid signature (wrong length)!\n", 1);
-	goto error;
-      }
-      else
-	if (! deserialize_mpi(&s, DF_COMPACT, sig, cp->sig_len_compact)) {
-	  print_quiet("Invalid signature (inconsistent structure)!\n", 1);
-	  goto error; 
+	if (opt_verbose) {
+		print_quiet("VERSION: ", 0);
+		fprintf(stderr, VERSION "\n"); 
+		print_quiet("CURVE: ", 0);
+		fprintf(stderr, "%s\n", cp->name); 
 	}
-    }
-    else
-      assert(deserialize_mpi(&s, DF_BIN, sigbuf.bin, cp->sig_len_bin));
 
-    if ((res = ECDSA_verify(md, &Q, s, cp)))
-      print_quiet("Signature successfully verified!\n", 0);
-    else
-      print_quiet("Invalid signature, message forged!\n", 1);
+	if (strlen(pubkey) != cp->pk_len_compact)
+		fatal("Invalid verification key (wrong length)");
 
-    gcry_mpi_release(s);
+	if (decompress_from_string(&Q, pubkey, DF_COMPACT, cp)) {
+		union {
+			char compact[cp->sig_len_compact + 2];
+			char bin[cp->sig_len_bin];
+		} sigbuf;
 
-  error:
-    gcry_md_close(mh);
-    point_release(&Q);
-  }
-  else
-    fatal("Invalid verification key");
+		err = gcry_md_open(&mh, GCRY_MD_SHA512, 0);
+		if (gcry_err_code(err))
+			fatal_gcrypt("Cannot initialize SHA512", err);
 
-  curve_release(cp);
-  return ! res;
+		if (opt_sigfile) {
+			FILE *sigfile;
+			if (! (sigfile = fopen(opt_sigfile, "r")))
+				fatal_errno("Cannot open signature file", errno);
+
+			if (opt_sigbin) {
+				if (fread(sigbuf.bin, cp->sig_len_bin, 1, sigfile) != 1) {
+					if (ferror(sigfile))
+						fatal_errno("Cannot read signature", errno);
+					else {
+						print_quiet("Invalid signature (wrong length)!\n", 1);
+						fclose(sigfile);
+						goto error;
+					}
+				}
+			}
+			else {
+				sigbuf.compact[0] = 0;
+				if (! fgets(sigbuf.compact, cp->sig_len_compact + 2, sigfile) && ferror(sigfile))
+					fatal_errno("Cannot read signature", errno);
+				sigbuf.compact[strcspn(sigbuf.compact, " \r\n")] = '\0';
+			}
+
+			if (fclose(sigfile))
+				fatal_errno("Cannot close signature file", errno);
+		}
+
+		if (isatty(opt_fdin))
+			print_quiet("Go ahead and type your message ...\n", 0);
+
+		if (opt_sigappend) {
+			if (opt_sigbin)
+				verisign_loop(opt_fdin, opt_fdout, &mh, sigbuf.bin, 
+							cp->sig_len_bin, opt_sigcopy);
+			else {
+				verisign_loop(opt_fdin, opt_fdout, &mh, sigbuf.compact,
+							cp->sig_len_compact, opt_sigcopy);
+				sigbuf.compact[cp->sig_len_compact] = 0;
+			}
+		}
+		else
+			verisign_loop(opt_fdin, opt_fdout, &mh, NULL, 0, opt_sigcopy);
+
+		gcry_md_final(mh);
+		md = (char*)gcry_md_read(mh, 0);
+
+		if (opt_verbose) {
+			int i;
+			print_quiet("SHA512: ", 0);
+			for(i = 0; i < 64; i++)
+				fprintf(stderr, "%02x", (unsigned char)md[i]);
+			fprintf(stderr, "\n");
+		}
+
+		if (! opt_sigbin) {
+			if (! sig)
+				sig = sigbuf.compact;
+			if (strlen(sig) != cp->sig_len_compact) {
+				print_quiet("Invalid signature (wrong length)!\n", 1);
+				goto error;
+			}
+			else
+				if (! deserialize_mpi(&s, DF_COMPACT, sig, cp->sig_len_compact)) {
+					print_quiet("Invalid signature (inconsistent structure)!\n", 1);
+					goto error; 
+				}
+		}
+		else
+			assert(deserialize_mpi(&s, DF_BIN, sigbuf.bin, cp->sig_len_bin));
+
+		if ((res = ECDSA_verify(md, &Q, s, cp)))
+			print_quiet("Signature successfully verified!\n", 0);
+		else
+			print_quiet("Invalid signature, message forged!\n", 1);
+
+		gcry_mpi_release(s);
+
+		error:
+			gcry_md_close(mh);
+			point_release(&Q);
+		}
+	else
+		fatal("Invalid verification key");
+
+	curve_release(cp);
+	return ! res;
 }
 
 void app_signcrypt(const char *pubkey)
