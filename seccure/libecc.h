@@ -41,6 +41,7 @@
 struct _ECC_KeyPair {
 	void *priv;
 	void *pub;
+	unsigned int pub_len;
 };
 typedef struct _ECC_KeyPair* ECC_KeyPair;
 
@@ -62,11 +63,21 @@ struct _ECC_Options {
 }; 
 typedef struct _ECC_Options* ECC_Options;
 
+/**
+ * ::ECC_State is a bag of useful bits for maintaining cross-function state
+ */
+struct _ECC_State {
+	bool gcrypt_init;
+	ECC_Options options;
+	struct curve_params *curveparams;
+};
+typedef struct _ECC_State* ECC_State;
+
 
 /**
  * Allocate an empty ::ECC_KeyPair
  */
-ECC_KeyPair ecc_new_keypair(void);
+ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state);
 /**
  * Allocate an empty ::ECC_Data
  */
@@ -78,6 +89,14 @@ ECC_Data ecc_new_data(void);
  * object after allocation and prior to returning the object
  */
 ECC_Options ecc_new_options(void);
+/**
+ * Allocate an empty ::ECC_State
+ */
+ECC_State ecc_new_state(ECC_Options opts);
+/**
+ * Free and release an ::ECC_state object
+ */
+void ecc_free_state(ECC_State state);
 
 
 /**
@@ -91,9 +110,9 @@ ECC_Options ecc_new_options(void);
  * @param priv Specify NULL to generate a random private key, otherwise string.
  * You will be responsible for deallocating "priv" yourself, if not-NULL then
  * the contents of the buffer will be copied into a new buffer
- * @param opts ::ECC_Options object
+ * @param state ::ECC_State object
  */
-ECC_KeyPair ecc_keygen(void *priv, ECC_Options opts);
+ECC_KeyPair ecc_keygen(void *priv, ECC_State state);
 
 
 /**
@@ -119,9 +138,9 @@ ECC_Data ecc_decrypt(void *encrypted, ECC_KeyPair keypair);
  * @param data An allocated buffer to generate a signature against
  * @param keypair ::ECC_KeyPair to use when generating the signature 
  * (only needs "priv" member to contain data)
- * @param opts ::ECC_Options object or NULL
+ * @param state ::ECC_State object
  */
-ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts);
+ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state);
 
 
 /**
@@ -131,10 +150,8 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts);
  * @param data An allocated buffer against which to verify the signature
  * @param signature The ECC generated signature 
  * @param keypair ::ECC_KeyPair object (only needs the "pub" member to contain data)
- * @param opts ::ECC_Options object or NULL
+ * @param state ::ECC_State object
  */
-bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts);
-
-
+bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State state);
 
 #endif

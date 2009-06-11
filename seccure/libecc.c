@@ -45,8 +45,12 @@ void __warning(const char *message)
 /**
  * Handle initializing libgcrypt and some other preliminary necessities
  */
-bool __init_ecc(ECC_Options options)
+bool __init_ecc(ECC_State state)
 {
+	/* Make sure we don't accidentally double-init */
+	if (state->gcrypt_init)
+		return true;
+	
 	gcry_error_t err;
 	
 	if (!gcry_check_version(REQUIRED_LIBGCRYPT)) {
@@ -58,28 +62,104 @@ bool __init_ecc(ECC_Options options)
 	if (gcry_err_code(err))
 		__gwarning("Cannot enable libgcrypt's secure memory management", err);
 
-	if ( (options != NULL) && (options->secure_random) ) {
+	if ( (state->options != NULL) && (state->options->secure_random) ) {
 		err = gcry_control(GCRYCTL_USE_SECURE_RNDPOOL, 1);
 		if (gcry_err_code(err))
 			__gwarning("Cannot enable libgcrupt's secure random number generator", err);
 	}
-		
+
+	state->gcrypt_init = true;
 	return true;
 }
 
-void __del_ecc()
+struct curve_params *__curve_from_opts(ECC_Options opts)
 {
-	gcry_error_t err;
+	struct curve_params *c_params;
+	/*
+	 * Pull out the curve if it's passed in on the opts object
+	 */
+	if ( (opts != NULL) && (opts->curve != NULL) ) 
+		c_params = curve_by_name(opts->curve);
+	else
+		c_params = curve_by_name(DEFAULT_CURVE);
 
-	err = gcry_control(GCRYCTL_TERM_SECMEM);
-	if (gcry_err_code(err))
-		__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
+	return c_params;
 }
 
-ECC_KeyPair ecc_new_keypair()
+ECC_State ecc_new_state(ECC_Options opts)
+{
+	ECC_State state = (ECC_State)(malloc(sizeof(struct _ECC_State)));
+	bzero(state, sizeof(struct _ECC_State));
+
+	state->options = opts;
+
+	if (!__init_ecc(state)) {
+		__warning("Failed to initialize libecc's state properly!");
+		free(state);
+		return NULL;
+	}
+
+	state->curveparams = __curve_from_opts(opts);
+
+	return state;
+}
+
+void ecc_free_state(ECC_State state)
+{
+	if (state == NULL)
+		return;
+	
+	if (state->options)
+		free(state->options);
+	
+	if (state->curveparams)
+		curve_release(state->curveparams);
+	
+	if (state->gcrypt_init) {
+		gcry_error_t err;
+
+		err = gcry_control(GCRYCTL_TERM_SECMEM);
+		if (gcry_err_code(err))
+			__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
+	}
+
+	free(state);
+}
+ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state)
 {
 	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
-	bzero(kp, sizeof(struct _ECC_KeyPair));
+
+	kp->pub = NULL;
+	kp->priv = NULL;
+	kp->pub_len = 0;
+
+	if (pubkey != NULL) {
+		kp->pub = pubkey;
+		kp->pub_len = (unsigned int)(strlen(pubkey));
+	}
+
+	if (privkey != NULL) {
+		gcry_error_t err;
+		gcry_md_hd_t container;
+		gcry_mpi_t privkey_hash;
+		char *privkey_secure = NULL;
+
+		err = gcry_md_open(&container, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
+		if (gcry_err_code(err)) {
+			__gwarning("Could not initialize SHA-256 digest for the private key", err);
+			free(kp);
+			return NULL;
+		}
+		gcry_md_write(container, privkey, strlen(privkey));
+		gcry_md_final(container);
+		privkey_secure = (char *)(gcry_md_read(container, 0));
+
+		privkey_hash = hash_to_exponent(privkey_secure, state->curveparams);
+		gcry_md_close(container);
+
+		kp->priv = privkey_hash;
+	}
+
 	return kp;
 }
 
@@ -104,37 +184,16 @@ ECC_Options ecc_new_options()
 	return opts;
 }
 
-ECC_KeyPair ecc_keygen(void *priv, ECC_Options opts)
+ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
-	if (!__init_ecc(opts)) {
-		__warning("Failed to initialize libecc for whatever reason");
-		__del_ecc();
-		return NULL;
-	}
-
-	ECC_KeyPair result = ecc_new_keypair();
-	struct curve_params *c_params;
-	/*
-	 * Pull out the curve if it's passed in on the opts object
-	 */
-	if ( (opts != NULL) && (opts->curve != NULL) ) 
-		c_params = curve_by_name(opts->curve);
-	else
-		c_params = curve_by_name(DEFAULT_CURVE);
-
-
+	ECC_KeyPair result = ecc_new_keypair(NULL, NULL, NULL);
 	return result;
 }
 
 
-ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
+ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 {
 	ECC_Data rc = NULL;
-
-	if (!__init_ecc(opts)) {
-		__warning("Failed to initialize libecc for whatever reason");
-		goto exit;
-	}
 
 	/* 
 	 * Preliminary argument checks, just for sanity of the library 
@@ -148,37 +207,15 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		goto exit;
 	}
+	if ( (state == NULL) || (!state->gcrypt_init) ) {
+		__warning("Invalid or uninitialized ECC_State object");
+		goto exit;
+	}
 
-	struct curve_params *c_params;
 	gcry_md_hd_t digest;
 	gcry_error_t err;
-	gcry_mpi_t signature, keyhash;
+	gcry_mpi_t signature;
 	char *digest_buf = NULL;
-	char *privkey_buf = NULL;
-
-	/*
-	 * Pull out the curve if it's passed in on the opts object
-	 */
-	if ( (opts != NULL) && (opts->curve != NULL) ) 
-		c_params = curve_by_name(opts->curve);
-	else
-		c_params = curve_by_name(DEFAULT_CURVE);
-
-	/* 
-	 * Process the private key in secure memory
-	 */
-	gcry_md_hd_t key_store;
-	err = gcry_md_open(&key_store, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
-	if (gcry_err_code(err)) {
-		__warning("Could not initialize SHA-256 digest for the private key");
-		goto bailout;
-	}
-	gcry_md_write(key_store, (char *)(keypair->priv), strlen((char *)(keypair->priv)));
-	gcry_md_final(key_store);
-	privkey_buf = (char *)(gcry_md_read(key_store, 0));
-
-	keyhash = hash_to_exponent(privkey_buf, c_params);
-	gcry_md_close(key_store);
 
 	/*
 	 * Open up message digest for the signing
@@ -201,7 +238,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 		goto bailout;
 	}
 
-	signature = ECDSA_sign(digest_buf, keyhash, c_params);
+	signature = ECDSA_sign(digest_buf, keypair->priv, state->curveparams);
 
 	if (signature == NULL) {
 		__warning("ECDSA_sign() returned a NULL signature");
@@ -209,31 +246,25 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 	}
 
 	rc = ecc_new_data();
-	char *serialized = (char *)(malloc(sizeof(char) * (1 + c_params->sig_len_compact)));
+	char *serialized = (char *)(malloc(sizeof(char) * 
+			(1 + state->curveparams->sig_len_compact)));
 
-	serialize_mpi(serialized, c_params->sig_len_compact, DF_COMPACT, signature);
+	serialize_mpi(serialized, state->curveparams->sig_len_compact, 
+			DF_COMPACT, signature);
 	rc->data = serialized;
 	
 	bailout:
-		gcry_mpi_release(keyhash);
 		gcry_mpi_release(signature);
 		gcry_md_close(digest);
-		curve_release(c_params);
 		goto exit;
 	exit:
-		__del_ecc();
 		return rc;
 }
 
 
-bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts)
+bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State state)
 {
 	bool rc = false;
-
-	if (!__init_ecc(opts)) {
-		__warning("Failed to initialize libecc for whatever reason");
-		goto exit;
-	}
 
 	/*
 	 * Preliminary argument checks, just for sanity of the library
@@ -250,26 +281,19 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		goto exit;
 	}
+	if ( (state == NULL) || (!state->gcrypt_init) ) {
+		__warning("Invalid or uninitialized ECC_State object");
+		goto exit;
+	}
 
-
-	struct curve_params *c_params;
 	struct affine_point _ap;
 	gcry_error_t err;
 	gcry_mpi_t deserialized_sig;
 	gcry_md_hd_t digest;
 	char *digest_buf = NULL;
 	int result = 0;
-	
-	/*
-	 * Pull out the curve if it's passed in on the opts object
-	 */
-	if ( (opts != NULL) && (opts->curve != NULL) ) 
-		c_params = curve_by_name(opts->curve);
-	else
-		c_params = curve_by_name(DEFAULT_CURVE);
-	
 
-	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, c_params)) {
+	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, state->curveparams)) {
 		__warning("Invalid public key");
 		goto bailout;
 	}
@@ -294,7 +318,7 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 		goto bailout;
 	}
 
-	result = ECDSA_verify(digest_buf, &_ap, deserialized_sig, c_params);
+	result = ECDSA_verify(digest_buf, &_ap, deserialized_sig, state->curveparams);
 	if (result)
 		rc = true;
 	/*
@@ -310,10 +334,8 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 
 	bailout:
 		point_release(&_ap);
-		curve_release(c_params);
 		gcry_md_close(digest);
 		goto exit;
 	exit:
-		__del_ecc();
 		return rc;
 }

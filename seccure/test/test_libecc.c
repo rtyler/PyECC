@@ -38,11 +38,10 @@
  */
 void __test_verify()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = DEFAULT_PRIVKEY;
-	kp->pub = DEFAULT_PUBKEY;
-
-	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, kp, NULL));
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
+	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, kp, state));
+	ecc_free_state(state);
 }
 
 void __test_verify_nullkp()
@@ -52,29 +51,26 @@ void __test_verify_nullkp()
 
 void __test_verify_nulldata()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = DEFAULT_PRIVKEY;
-	kp->pub = DEFAULT_PUBKEY;
-
-	g_assert(ecc_verify(NULL, DEFAULT_SIG, kp, NULL) == false);
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
+	g_assert(ecc_verify(NULL, DEFAULT_SIG, kp, state) == false);
+	ecc_free_state(state);
 }
 
 void __test_verify_nullsig()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = DEFAULT_PRIVKEY;
-	kp->pub = DEFAULT_PUBKEY;
-
-	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, NULL) == false);
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
+	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, state) == false);
+	ecc_free_state(state);
 }
 
 void __test_verify_crapsig()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = DEFAULT_PRIVKEY;
-	kp->pub = DEFAULT_PUBKEY;
-
-	g_assert(ecc_verify(DEFAULT_DATA, "This sig is crap", kp, NULL) == false);
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
+	g_assert(ecc_verify(DEFAULT_DATA, "This sig is crap", kp, state) == false);
+	ecc_free_state(state);
 }
 
 
@@ -85,15 +81,27 @@ void __test_verify_crapsig()
  */
 void __test_new_keypair()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(NULL, NULL, state);
 
 	g_assert(kp != NULL);
 	g_assert(kp->priv == NULL);
 	g_assert(kp->pub == NULL);
 
+	ecc_free_state(state);
 	free(kp);
 }
 
+/**
+ * __test_new_state() will test ecc_new_state() to make sure it generates
+ * a properly allocated and empty ::ECC_State object
+ */
+void __test_new_state()
+{
+	ECC_State state = ecc_new_state(NULL);
+	g_assert(state != NULL);
+	ecc_free_state(state);
+}
 
 /**
  * __test_new_data() will test ecc_new_data() and make sure it generates
@@ -102,7 +110,6 @@ void __test_new_keypair()
 void __test_new_data()
 {
 	ECC_Data ed = ecc_new_data();
-	
 	g_assert(ed != NULL);
 	g_assert(ed->data == NULL);
 }
@@ -132,13 +139,12 @@ void __test_new_options()
  */
 void __test_sign()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = DEFAULT_PRIVKEY;
-	kp->pub = DEFAULT_PUBKEY;
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 
 	ECC_Data result = NULL;
 
-	result = ecc_sign(DEFAULT_DATA, kp, NULL);
+	result = ecc_sign(DEFAULT_DATA, kp, state);
 
 	g_assert(result != NULL);
 	g_assert_cmpstr(result->data, ==, DEFAULT_SIG);
@@ -146,22 +152,24 @@ void __test_sign()
 	 * For completeness' sake, verify our signature we 
 	 * just generated as well
 	 */
-	g_assert(ecc_verify(DEFAULT_DATA, result->data, kp, NULL));
+	g_assert(ecc_verify(DEFAULT_DATA, result->data, kp, state));
+	ecc_free_state(state);
 }
 void __test_sign_nulldata()
 {
-	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = DEFAULT_PRIVKEY;
-	kp->pub = DEFAULT_PUBKEY;
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 
-	ECC_Data result = ecc_sign(NULL, kp, NULL);
-
+	ECC_Data result = ecc_sign(NULL, kp, state);
 	g_assert(result == NULL);
+	ecc_free_state(state);
 }
 void __test_sign_nullkp()
 {
-	ECC_Data result = ecc_sign(DEFAULT_DATA, NULL, NULL);
+	ECC_State state = ecc_new_state(NULL);
+	ECC_Data result = ecc_sign(DEFAULT_DATA, NULL, state);
 	g_assert(result == NULL);
+	ecc_free_state(state);
 }
 
 
@@ -188,14 +196,15 @@ int main(int argc, char **argv)
 	/*
 	 * Basic data structures tests
 	 */
-	g_test_add_func("/libecc/ecc_new_keypair", __test_new_keypair);
-	g_test_add_func("/libecc/ecc_new_data", __test_new_data);
-	g_test_add_func("/libecc/ecc_new_options", __test_new_options);
+	g_test_add_func("/libecc/struct/ecc_new_keypair", __test_new_keypair);
+	g_test_add_func("/libecc/struct/ecc_new_data", __test_new_data);
+	g_test_add_func("/libecc/struct/ecc_new_options", __test_new_options);
+	g_test_add_func("/libecc/struct/ecc_new_state", __test_new_state);
 
 	/*
 	 * Tests for ecc_keygen()
 	 */
-	g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
+	//g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
 
 
 	/*
