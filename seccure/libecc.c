@@ -90,6 +90,7 @@ ECC_Data ecc_new_data()
 	return data;
 }
 
+
 ECC_Options ecc_new_options()
 {
 	ECC_Options opts = (ECC_Options)(malloc(sizeof(struct _ECC_Options)));

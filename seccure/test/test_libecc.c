@@ -67,7 +67,6 @@ void __test_verify_nullsig()
 
 	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, NULL) == false);
 }
-	
 
 
 /**
@@ -85,11 +84,41 @@ void __test_new_keypair()
 	free(kp);
 }
 
+/**
+ * __test_new_data() will test ecc_new_data() and make sure it generates
+ * a properly allocated but empty ::ECC_Data object
+ */
+void __test_new_data()
+{
+	ECC_Data ed = ecc_new_data();
+	
+	g_assert(ed != NULL);
+	g_assert(ed->data == NULL);
+}
+
+/**
+ * __test_new_options() will test ecc_new_options() and make sure it generates
+ * a properly allocated ::ECC_Options object
+ */
+void __test_new_options()
+{
+	ECC_Options eo = ecc_new_options();
+
+	g_assert(eo != NULL);
+	/* 
+	 * Not checking all the options since I don't want to maintain
+	 * a duplicate list
+	 */
+	g_assert(eo->curve != NULL);
+}
+
 int main(int argc, char **argv)
 {
 	g_test_init(&argc, &argv, NULL);
 
 	g_test_add_func("/libecc/ecc_new_keypair", __test_new_keypair);
+	g_test_add_func("/libecc/ecc_new_data", __test_new_data);
+	g_test_add_func("/libecc/ecc_new_options", __test_new_options);
 	g_test_add_func("/libecc/ecc_verify/default", __test_verify);
 	g_test_add_func("/libecc/ecc_verify/null_keypair", __test_verify_nullkp);
 	g_test_add_func("/libecc/ecc_verify/null_data", __test_verify_nulldata);

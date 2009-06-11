@@ -129,7 +129,7 @@ ECC_Data ecc_sign(void *data, ECC_KeyPair keypair);
  * @param data An allocated buffer against which to verify the signature
  * @param signature The ECC generated signature 
  * @param keypair ::ECC_KeyPair object (only needs the "pub" member to contain data)
- * @param opts ::ECC_Options object, if user desires to use a different curve
+ * @param opts ::ECC_Options object or NULL
  */
 bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts);
 
