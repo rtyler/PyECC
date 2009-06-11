@@ -186,7 +186,25 @@ ECC_Options ecc_new_options()
 
 ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
-	ECC_KeyPair result = ecc_new_keypair(NULL, NULL, NULL);
+	if (priv == NULL) {
+		/*
+		 * We should use a NULL private key as a signal to use
+		 * /dev/urandom or something with sufficient entropy
+		 * to generate our own private key
+		 */
+		return NULL;
+	}
+
+	ECC_KeyPair result = ecc_new_keypair(NULL, priv, state);
+	struct affine_point ap;
+	result->pub = (char *)(malloc(sizeof(char) * 
+			(state->curveparams->pk_len_compact + 1)));
+
+	ap = pointmul(&state->curveparams->dp.base, result->priv,
+			&state->curveparams->dp);
+	compress_to_string(result->pub, DF_COMPACT, &ap, state->curveparams);
+	point_release(&ap);
+
 	return result;
 }
 

@@ -179,13 +179,14 @@ void __test_sign_nullkp()
  */
 void __test_keygen()
 {
-	ECC_KeyPair result = ecc_keygen(DEFAULT_PRIVKEY, NULL);
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair result = ecc_keygen(DEFAULT_PRIVKEY, state);
 
 	g_assert(result != NULL);
 	g_assert(result->pub != NULL);
 	g_assert_cmpstr(result->pub, ==, DEFAULT_PUBKEY);
+	ecc_free_state(state);
 }
-	
 
 
 
@@ -204,7 +205,7 @@ int main(int argc, char **argv)
 	/*
 	 * Tests for ecc_keygen()
 	 */
-	//g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
+	g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
 
 
 	/*
