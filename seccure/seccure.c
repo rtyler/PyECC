@@ -632,10 +632,10 @@ void app_sign(void)
 				write_block(opt_fdout, sigbuf, cp->sig_len_compact);
 			else {
 				sigbuf[cp->sig_len_compact] = 0;
-			if (sigfile == stderr)
-				print_quiet("Signature: ", 0);
-			if (fprintf(sigfile, "%s\n", sigbuf) < 0)
-				fatal_errno("Cannot write signature", errno);
+				if (sigfile == stderr)
+					print_quiet("Signature: ", 0);
+				if (fprintf(sigfile, "%s\n", sigbuf) < 0)
+					fatal_errno("Cannot write signature", errno);
 			}
 		}
 
