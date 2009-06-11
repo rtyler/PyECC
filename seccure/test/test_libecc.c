@@ -142,8 +142,42 @@ void __test_sign()
 
 	g_assert(result != NULL);
 	g_assert_cmpstr(result->data, ==, DEFAULT_SIG);
+	/*
+	 * For completeness' sake, verify our signature we 
+	 * just generated as well
+	 */
 	g_assert(ecc_verify(DEFAULT_DATA, result->data, kp, NULL));
 }
+void __test_sign_nulldata()
+{
+	ECC_KeyPair kp = ecc_new_keypair();
+	kp->priv = DEFAULT_PRIVKEY;
+	kp->pub = DEFAULT_PUBKEY;
+
+	ECC_Data result = ecc_sign(NULL, kp, NULL);
+
+	g_assert(result == NULL);
+}
+void __test_sign_nullkp()
+{
+	ECC_Data result = ecc_sign(DEFAULT_DATA, NULL, NULL);
+	g_assert(result == NULL);
+}
+
+
+/**
+ * __test_keygen should test the canonical case
+ * of public key generation with a given private key
+ */
+void __test_keygen()
+{
+	ECC_KeyPair result = ecc_keygen(DEFAULT_PRIVKEY);
+
+	g_assert(result != NULL);
+	g_assert(result->pub != NULL);
+	g_assert_cmpstr(result->pub, ==, DEFAULT_PUBKEY);
+}
+	
 
 
 
@@ -157,6 +191,11 @@ int main(int argc, char **argv)
 	g_test_add_func("/libecc/ecc_new_keypair", __test_new_keypair);
 	g_test_add_func("/libecc/ecc_new_data", __test_new_data);
 	g_test_add_func("/libecc/ecc_new_options", __test_new_options);
+
+	/*
+	 * Tests for ecc_keygen()
+	 */
+	g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
 
 
 	/*
@@ -172,6 +211,8 @@ int main(int argc, char **argv)
 	 * Tests for ecc_sign()
 	 */
 	g_test_add_func("/libecc/ecc_sign/default", __test_sign);
+	g_test_add_func("/libecc/ecc_sign/null_data", __test_sign_nulldata);
+	g_test_add_func("/libecc/ecc_sign/null_keypair", __test_sign_nullkp);
 
 
 	return g_test_run();

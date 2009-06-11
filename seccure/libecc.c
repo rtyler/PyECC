@@ -104,6 +104,12 @@ ECC_Options ecc_new_options()
 	return opts;
 }
 
+ECC_KeyPair ecc_keygen(void *priv)
+{
+	return NULL;
+
+}
+
 
 ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
 {
