@@ -28,31 +28,19 @@
 
 #define DEFAULT_DATA "This message will be signed\n"
 #define DEFAULT_SIG "$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq"
+#define DEFAULT_PUBKEY "8W;>i^H0qi|J&$coR5MFpR*Vn"
+#define DEFAULT_PRIVKEY "my private key"
 
 
 /**
- * __test_verify() will test the ecc_verify() function to comply with the transcript
- * from the original SECCURE site:
- *
- * $ seccure-sign
- * Assuming curve p160.
- * Enter private key: my private key
- * Go ahead and type your message ...
- * This message will be signed
- * ^D
- * Signature: $HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq
- *
- * $ seccure-verify '8W;>i^H0qi|J&$coR5MFpR*Vn' '$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq'  
- * Go ahead and type your message ...
- * This message will be signed
- * ^D
- * Signature successfully verified!
+ * __test_verify() will test the ecc_verify() function to comply with 
+ * the transcript from the original SECCURE site:
  */
 void __test_verify()
 {
 	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = "my private key";
-	kp->pub = "8W;>i^H0qi|J&$coR5MFpR*Vn";
+	kp->priv = DEFAULT_PRIVKEY;
+	kp->pub = DEFAULT_PUBKEY;
 
 	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, kp, NULL));
 }
@@ -65,8 +53,8 @@ void __test_verify_nullkp()
 void __test_verify_nulldata()
 {
 	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = "my private key";
-	kp->pub = "8W;>i^H0qi|J&$coR5MFpR*Vn";
+	kp->priv = DEFAULT_PRIVKEY;
+	kp->pub = DEFAULT_PUBKEY;
 
 	g_assert(ecc_verify(NULL, DEFAULT_SIG, kp, NULL) == false);
 }
@@ -74,8 +62,8 @@ void __test_verify_nulldata()
 void __test_verify_nullsig()
 {
 	ECC_KeyPair kp = ecc_new_keypair();
-	kp->priv = "my private key";
-	kp->pub = "8W;>i^H0qi|J&$coR5MFpR*Vn";
+	kp->priv = DEFAULT_PRIVKEY;
+	kp->pub = DEFAULT_PUBKEY;
 
 	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, NULL) == false);
 }

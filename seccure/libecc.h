@@ -73,6 +73,9 @@ ECC_KeyPair ecc_new_keypair(void);
 ECC_Data ecc_new_data(void);
 /**
  * Allocate an empty ::ECC_Options
+ *
+ * ecc_new_options() will fill out a few default values for the options
+ * object after allocation and prior to returning the object
  */
 ECC_Options ecc_new_options(void);
 
