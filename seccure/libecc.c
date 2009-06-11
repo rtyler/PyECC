@@ -26,6 +26,7 @@
 #include "curves.h"
 #include "ecc.h"
 #include "libecc.h"
+#include "protocol.h"
 #include "serialize.h"
 
 
@@ -90,7 +91,6 @@ ECC_Options ecc_new_options()
 
 	return opts;
 }
-
 bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts)
 {
 	if (!__init_ecc()) {
@@ -116,8 +116,12 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 
 
 	struct curve_params *c_params;
-	//struct affine_point _ap;
-	//gcry_error_t err;
+	struct affine_point _ap;
+	gcry_error_t err;
+	gcry_mpi_t deserialized_sig;
+	gcry_md_hd_t digest;
+	char *digest_buf = NULL;
+	int result = 0;
 	//gcry_mpi_t data, sig;
 	
 	/*
@@ -127,6 +131,42 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options op
 		c_params = curve_by_name(opts->curve);
 	else
 		c_params = curve_by_name(DEFAULT_CURVE);
+	
+	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, c_params)) {
+		__warning("Invalid public key");
+		return false;
+	}
+
+	/*
+	union {
+		char compact[c_params->sig_len_compact + 2];
+		char bin[c_params->sig_len_bin];
+	} sig_buffer;
+	*/
+
+	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);
+	if (gcry_err_code(err)) {
+		__gwarning("Failed to initialize SHA-512 message digest", err);
+		return false;
+	}
+
+	/*
+	 * Write our data into the message digest buffer for gcrypt
+	 */
+	gcry_md_write(digest, data, strlen(data));
+	gcry_md_final(digest);
+	digest_buf = (char *)(gcry_md_read(digest, 0));
+
+	result = deserialize_mpi(&deserialized_sig, DF_COMPACT, signature, 
+						strlen(signature));
+	if (!result) {
+		__warning("Failed to deserialize the signature");
+		return false;
+	}
+
+	result = ECDSA_verify(digest_buf, &_ap, deserialized_sig, c_params);
+	if (result)
+		return true;
 		
 	return false;
 }
