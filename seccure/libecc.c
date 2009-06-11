@@ -104,10 +104,26 @@ ECC_Options ecc_new_options()
 	return opts;
 }
 
-ECC_KeyPair ecc_keygen(void *priv)
+ECC_KeyPair ecc_keygen(void *priv, ECC_Options opts)
 {
-	return NULL;
+	if (!__init_ecc(opts)) {
+		__warning("Failed to initialize libecc for whatever reason");
+		__del_ecc();
+		return NULL;
+	}
 
+	ECC_KeyPair result = ecc_new_keypair();
+	struct curve_params *c_params;
+	/*
+	 * Pull out the curve if it's passed in on the opts object
+	 */
+	if ( (opts != NULL) && (opts->curve != NULL) ) 
+		c_params = curve_by_name(opts->curve);
+	else
+		c_params = curve_by_name(DEFAULT_CURVE);
+
+
+	return result;
 }
 
 

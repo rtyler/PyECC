@@ -171,7 +171,7 @@ void __test_sign_nullkp()
  */
 void __test_keygen()
 {
-	ECC_KeyPair result = ecc_keygen(DEFAULT_PRIVKEY);
+	ECC_KeyPair result = ecc_keygen(DEFAULT_PRIVKEY, NULL);
 
 	g_assert(result != NULL);
 	g_assert(result->pub != NULL);

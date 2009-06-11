@@ -91,8 +91,9 @@ ECC_Options ecc_new_options(void);
  * @param priv Specify NULL to generate a random private key, otherwise string.
  * You will be responsible for deallocating "priv" yourself, if not-NULL then
  * the contents of the buffer will be copied into a new buffer
+ * @param opts ::ECC_Options object
  */
-ECC_KeyPair ecc_keygen(void *priv);
+ECC_KeyPair ecc_keygen(void *priv, ECC_Options opts);
 
 
 /**
