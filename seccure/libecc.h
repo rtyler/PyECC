@@ -118,8 +118,9 @@ ECC_Data ecc_decrypt(void *encrypted, ECC_KeyPair keypair);
  * @param data An allocated buffer to generate a signature against
  * @param keypair ::ECC_KeyPair to use when generating the signature 
  * (only needs "priv" member to contain data)
+ * @param opts ::ECC_Options object or NULL
  */
-ECC_Data ecc_sign(void *data, ECC_KeyPair keypair);
+ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts);
 
 
 /**

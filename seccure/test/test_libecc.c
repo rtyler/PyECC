@@ -68,6 +68,16 @@ void __test_verify_nullsig()
 	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, NULL) == false);
 }
 
+void __test_verify_crapsig()
+{
+	ECC_KeyPair kp = ecc_new_keypair();
+	kp->priv = DEFAULT_PRIVKEY;
+	kp->pub = DEFAULT_PUBKEY;
+
+	g_assert(ecc_verify(DEFAULT_DATA, "This sig is crap", kp, NULL) == false);
+}
+
+
 
 /**
  * __test_new_keypair() will test ecc_new_keypair() and make sure it generates an
@@ -84,6 +94,7 @@ void __test_new_keypair()
 	free(kp);
 }
 
+
 /**
  * __test_new_data() will test ecc_new_data() and make sure it generates
  * a properly allocated but empty ::ECC_Data object
@@ -95,6 +106,7 @@ void __test_new_data()
 	g_assert(ed != NULL);
 	g_assert(ed->data == NULL);
 }
+
 
 /**
  * __test_new_options() will test ecc_new_options() and make sure it generates
@@ -112,17 +124,54 @@ void __test_new_options()
 	g_assert(eo->curve != NULL);
 }
 
+
+/**
+ * __test_sign should test a simple straight-forward
+ * signing of a predetermined string to verify it outputs 
+ * the same signature that the seccure binary does
+ */
+void __test_sign()
+{
+	ECC_KeyPair kp = ecc_new_keypair();
+	kp->priv = DEFAULT_PRIVKEY;
+	kp->pub = DEFAULT_PUBKEY;
+
+	ECC_Data result = NULL;
+
+	result = ecc_sign(DEFAULT_DATA, kp, NULL);
+
+	g_assert(result != NULL);
+	g_assert(result->data == DEFAULT_SIG);
+}
+
+
+
 int main(int argc, char **argv)
 {
 	g_test_init(&argc, &argv, NULL);
 
+	/*
+	 * Basic data structures tests
+	 */
 	g_test_add_func("/libecc/ecc_new_keypair", __test_new_keypair);
 	g_test_add_func("/libecc/ecc_new_data", __test_new_data);
 	g_test_add_func("/libecc/ecc_new_options", __test_new_options);
+
+
+	/*
+	 * Tests for ecc_verify()
+	 */
 	g_test_add_func("/libecc/ecc_verify/default", __test_verify);
 	g_test_add_func("/libecc/ecc_verify/null_keypair", __test_verify_nullkp);
 	g_test_add_func("/libecc/ecc_verify/null_data", __test_verify_nulldata);
 	g_test_add_func("/libecc/ecc_verify/null_sig", __test_verify_nullsig);
+	g_test_add_func("/libecc/ecc_verify/crap_sig", __test_verify_crapsig);
+
+	/* 
+	 * Tests for ecc_sign()
+	 */
+	g_test_add_func("/libecc/ecc_sign/default", __test_sign);
+
 
 	return g_test_run();
 }

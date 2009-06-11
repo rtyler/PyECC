@@ -103,6 +103,93 @@ ECC_Options ecc_new_options()
 
 	return opts;
 }
+
+
+ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_Options opts)
+{
+	ECC_Data rc = NULL;
+
+	if (!__init_ecc(opts)) {
+		__warning("Failed to initialize libecc for whatever reason");
+		goto exit;
+	}
+
+	/* 
+	 * Preliminary argument checks, just for sanity of the library 
+	 */
+	if ( (data == NULL) || (strlen(data) == 0) ) {
+		__warning("Invalid or empty `data` argument passed to ecc_verify()");
+		goto exit;
+	}
+	if ( (keypair == NULL) || (keypair->priv == NULL) || 
+			(strlen(keypair->priv) == 0) ) {
+		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
+		goto exit;
+	}
+
+	struct curve_params *c_params;
+	gcry_md_hd_t digest;
+	gcry_error_t err;
+	gcry_mpi_t signature, keyhash;
+	char *digest_buf = NULL;
+
+	/*
+	 * Pull out the curve if it's passed in on the opts object
+	 */
+	if ( (opts != NULL) && (opts->curve != NULL) ) 
+		c_params = curve_by_name(opts->curve);
+	else
+		c_params = curve_by_name(DEFAULT_CURVE);
+
+	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);
+	if (gcry_err_code(err)) {
+		__gwarning("Failed to initialize SHA-512 message digest", err);
+		goto bailout;
+	}
+
+	/*
+	 * Write our data into the message digest buffer for gcrypt
+	 */
+	gcry_md_write(digest, data, strlen(data));
+	gcry_md_final(digest);
+	digest_buf = (char *)(gcry_md_read(digest, 0));
+
+	if (digest_buf == NULL) {
+		__warning("Digest buffer was NULL");
+		goto bailout;
+	}
+
+	keyhash = hash_to_exponent(keypair->priv, c_params);
+	fprintf(stderr, "privkey: %s\n", (char *)keypair->priv);
+	fprintf(stderr, "data: %s\n", data);
+
+	signature = ECDSA_sign(digest_buf, keyhash, c_params);
+
+	if (signature == NULL) {
+		__warning("ECDSA_sign() returned a NULL signature");
+		goto bailout;
+	}
+
+	rc = ecc_new_data();
+	char *serialized = (char *)(malloc(sizeof(char) * (1 + c_params->sig_len_compact)));
+
+	serialize_mpi(serialized, c_params->sig_len_compact, DF_COMPACT, signature);
+	rc->data = serialized;
+	
+	fprintf(stderr, "Sig: %s\n", (char *)rc->data);
+
+	bailout:
+		gcry_mpi_release(keyhash);
+		gcry_mpi_release(signature);
+		gcry_md_close(digest);
+		curve_release(c_params);
+		goto exit;
+	exit:
+		__del_ecc();
+		return rc;
+}
+
+
 bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_Options opts)
 {
 	bool rc = false;
