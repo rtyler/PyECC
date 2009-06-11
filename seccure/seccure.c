@@ -303,43 +303,43 @@ void read_passphrase(char *hash, const char *name)
 
 void app_print_public_key(void)
 {
-  struct curve_params *cp;
-  if (! opt_curve) {
-    opt_curve = DEFAULT_CURVE;
-    fprintf(stderr, "Assuming curve " DEFAULT_CURVE ".\n");
-  }
+	struct curve_params *cp;
+	if (! opt_curve) {
+		opt_curve = DEFAULT_CURVE;
+		fprintf(stderr, "Assuming curve " DEFAULT_CURVE ".\n");
+	}
 
-  if ((cp = curve_by_name(opt_curve))) {
-    char pubkey[cp->pk_len_compact + 1];
-    char *privkey;
-    struct affine_point P;
-    gcry_mpi_t d;
+	if ((cp = curve_by_name(opt_curve))) {
+		char pubkey[cp->pk_len_compact + 1];
+		char *privkey;
+		struct affine_point P;
+		gcry_mpi_t d;
 
-    if (opt_verbose) {
-      print_quiet("VERSION: ", 0);
-      fprintf(stderr, VERSION "\n"); 
-      print_quiet("CURVE: ", 0); 
-      fprintf(stderr, "%s\n", cp->name); 
-    }
+		if (opt_verbose) {
+		  print_quiet("VERSION: ", 0);
+		  fprintf(stderr, VERSION "\n"); 
+		  print_quiet("CURVE: ", 0); 
+		  fprintf(stderr, "%s\n", cp->name); 
+		}
 
-    if (! (privkey = gcry_malloc_secure(32)))
-      fatal("Out of secure memory");
-    read_passphrase(privkey, "private key");
-    d = hash_to_exponent(privkey, cp);
-    gcry_free(privkey);
-    P = pointmul(&cp->dp.base, d, &cp->dp);
-    gcry_mpi_release(d);
+		if (! (privkey = gcry_malloc_secure(32)))
+		  fatal("Out of secure memory");
+		read_passphrase(privkey, "private key");
+		d = hash_to_exponent(privkey, cp);
+		gcry_free(privkey);
+		P = pointmul(&cp->dp.base, d, &cp->dp);
+		gcry_mpi_release(d);
 
-    compress_to_string(pubkey, DF_COMPACT, &P, cp);
-    pubkey[cp->pk_len_compact] = 0;
-    if (! opt_quiet)
-      printf("The public key is: ");
-    printf("%s\n", pubkey);
-    point_release(&P);
-    curve_release(cp);
-  }
-  else
-    fatal("Invalid curve name");
+		compress_to_string(pubkey, DF_COMPACT, &P, cp);
+		pubkey[cp->pk_len_compact] = 0;
+		if (! opt_quiet)
+		  printf("The public key is: ");
+		printf("%s\n", pubkey);
+		point_release(&P);
+		curve_release(cp);
+	}
+	else
+		fatal("Invalid curve name");
 }
 
 void app_encrypt(const char *pubkey)
