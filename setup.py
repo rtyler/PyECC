@@ -2,7 +2,7 @@ import os
 from distutils.core import setup, Extension
 
 base_modules = [
-    Extension('pyecc', [
+    Extension('_pyecc', [
             'seccure/libecc.c',
             'seccure/numtheory.c',
             'seccure/ecc.c',
@@ -11,7 +11,8 @@ base_modules = [
             'seccure/curves.c',
             'seccure/aes256ctr.c',
             '_pyecc.c',
-        ])
+        ],
+        libraries=['gcrypt'])
 ]
 
 # if an extension is missing dependencies, distutils will attempt the build regardless

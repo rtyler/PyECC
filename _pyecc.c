@@ -1,5 +1,5 @@
 /*
- *  libecc - Copyright 2009 Slide, Inc.
+ *  pyecc - Copyright 2009 Slide, Inc.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as
@@ -17,6 +17,27 @@
  *  02111-1307 USA
  */
 
+#include <stdio.h>
+
 #include <Python.h>
 
 
+static char pyecc_doc[] = "\
+The _pyecc module provides underlying C hooks for the \
+\"pyecc\" module\n\n\
+Refer to the pyecc documentation for it's use as \
+_pyecc is not intended for public consumption as \
+it does not provide the proper wrapper and object-\
+oriented support that the pyecc module does\n\
+";
+
+
+static struct PyMethodDef _pyecc_methods[] = {
+	{NULL, NULL, 0, NULL}
+};
+
+
+PyMODINIT_FUNC init_pyecc(void)
+{
+	PyObject *module = Py_InitModule3("_pyecc", _pyecc_methods, pyecc_doc);
+}
