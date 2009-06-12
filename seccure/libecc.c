@@ -29,6 +29,7 @@
 #include "protocol.h"
 #include "serialize.h"
 
+static unsigned int __init_ecc_refcount = 0;
 
 /**
  * Print a warning to stderr
@@ -50,6 +51,12 @@ bool __init_ecc(ECC_State state)
 	/* Make sure we don't accidentally double-init */
 	if (state->gcrypt_init)
 		return true;
+
+	if (__init_ecc_refcount > 0) {
+		__init_ecc_refcount++;
+		state->gcrypt_init = true;
+		return true;
+	}
 	
 	gcry_error_t err;
 	
@@ -116,11 +123,15 @@ void ecc_free_state(ECC_State state)
 		curve_release(state->curveparams);
 	
 	if (state->gcrypt_init) {
-		gcry_error_t err;
+		__init_ecc_refcount--;
 
-		err = gcry_control(GCRYCTL_TERM_SECMEM);
-		if (gcry_err_code(err))
-			__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
+		if (__init_ecc_refcount == 0) {
+			gcry_error_t err;
+
+			err = gcry_control(GCRYCTL_TERM_SECMEM);
+			if (gcry_err_code(err))
+				__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
+		}
 	}
 
 	free(state);
