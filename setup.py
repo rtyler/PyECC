@@ -15,12 +15,14 @@ base_modules = [
         libraries=['gcrypt'])
 ]
 
+packages = ['pyecc']
+
 # if an extension is missing dependencies, distutils will attempt the build regardless
 modules = filter(lambda m: reduce(lambda x, y: x and os.path.exists(y), m.depends, True), base_modules)
 missing_modules = filter(lambda m: m not in modules, base_modules)
 if missing_modules:
 	print 'WARNING: Some Python modules are missing dependencies: %s' % ', '.join(map(lambda x: x.name, missing_modules))
 
-setup(ext_modules=modules)
+setup(ext_modules=modules, py_modules=['pyecc'])
 
 
