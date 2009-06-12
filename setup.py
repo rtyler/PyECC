@@ -23,6 +23,13 @@ missing_modules = filter(lambda m: m not in modules, base_modules)
 if missing_modules:
 	print 'WARNING: Some Python modules are missing dependencies: %s' % ', '.join(map(lambda x: x.name, missing_modules))
 
-setup(ext_modules=modules, py_modules=['pyecc'])
+setup(
+    name = 'PyECC',
+    description = '''A CPython module to enable Elliptical Curve Cryptography in Python''',
+    version = '1.0',
+    author = 'R. Tyler Ballance',
+    author_email = 'tyler@slide.com',
+    ext_modules=modules, 
+    py_modules=['pyecc'])
 
 
