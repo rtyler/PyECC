@@ -21,24 +21,20 @@
 #define _PYECC_H_
 
 #include <Python.h>
+
 #include "seccure/libecc.h"
 
-/**
- * Define a CPython PyECC_State object to allow passing 
- * ECC_State objects back and forth properly
- */
 typedef struct {
     PyObject_HEAD
     /* object specific members */
-    ECC_State state;
-    PyObject *weakreflist;
-} PyECC_State;
+    PyObject  *weakreflist;
+} PyECC_KeyPair;
 
-static PyTypeObject PyECC_StateType = {
+static PyTypeObject PyECC_KeyPairType = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
-    "_pyecc.PyECC_State",             /*tp_name*/
-    sizeof(PyECC_State), /*tp_basicsize*/
+    "_pyecc.PyECC_KeyPair",             /*tp_name*/
+    sizeof(PyECC_KeyPair), /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     0,                         /*tp_dealloc*/
     0,                         /*tp_print*/
@@ -56,7 +52,43 @@ static PyTypeObject PyECC_StateType = {
     0,                         /*tp_setattro*/
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-    "PyECC_State object, don't use this directly", /* tp_doc */
+    "The KeyPair object contains the references to an \
+encrypted private key and an unencrypted public key.", /* tp_doc */
 };
+
+typedef struct {
+    PyObject_HEAD
+    /* object specific members */
+    PyObject *weakreflist;
+} PyECC_ECC;
+
+static PyTypeObject PyECC_ECCType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "_pyecc.ECC",             /*tp_name*/
+    sizeof(PyECC_ECC), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    0,                         /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+    "The ECC object must be instantiated to work with any encrypted \
+data, as some amount of state with libecc and libgcrypt is required", /* tp_doc */
+};
+
+
+
 
 #endif

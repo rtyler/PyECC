@@ -17,9 +17,8 @@
  *  02111-1307 USA
  */
 
+#include "_pyecc.h"
 #include <stdio.h>
-
-#include <Python.h>
 
 
 static char pyecc_doc[] = "\
