@@ -11,6 +11,7 @@ base_modules = [
             'seccure/curves.c',
             'seccure/aes256ctr.c',
             '_pyecc.c',
+            'py_objects.c',
         ],
         libraries=['gcrypt'])
 ]

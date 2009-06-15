@@ -1,5 +1,5 @@
-LDFLAGS = -lgcrypt 
-CFLAGS = -g -Wall -Werror -fPIC
+LDFLAGS += -lgcrypt 
+CFLAGS += -g -Wall -fPIC -O0 -Wstrict-prototypes -pthread -fno-strict-aliasing
 
 default: binaries doc libecc.so
 
