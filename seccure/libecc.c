@@ -59,29 +59,16 @@ bool __init_ecc(ECC_State state)
 	}
 	
 	gcry_error_t err;
-	/*
-	err = gcry_control(GCRYCTL_FORCE_FIPS_MODE, 0);
-	if (gcry_err_code(err)) {
-		__gwarning("Failed to force FIPS mode", err);
-		return false;
-	}
-	*/
+	
 	if (!gcry_check_version(REQUIRED_LIBGCRYPT)) {
 		__gwarning("Incorrect libgcrypt version", err);
 		return false;
 	}
 
-	// XXX DEBUG
-	fprintf(stderr, "IS FIPS ON? %d\n", gcry_fips_mode_active());
-	fprintf(stderr, "getuid() -> %d\n", getuid());
-
-	//err = gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
-	err = gcry_control(GCRYCTL_INIT_SECMEM, 65536);
-	//err = gcry_control(GCRYCTL_INIT_SECMEM, 1);
+	err = gcry_control(GCRYCTL_INIT_SECMEM, 1);
 	if (gcry_err_code(err))
 		__gwarning("Cannot enable libgcrypt's secure memory management", err);
 
-	fprintf(stderr, "getuid() -> %d\n", getuid());
 	if ( (state->options != NULL) && (state->options->secure_random) ) {
 		err = gcry_control(GCRYCTL_USE_SECURE_RNDPOOL, 1);
 		if (gcry_err_code(err))
