@@ -34,7 +34,10 @@ class ECC(object):
         at once
     '''
     def __init__(self, *args, **kwargs):
-        pass
+        self._private = kwargs.get('private')
+        self._public = kwargs.get('public')
+        self._state = _pyecc.new_state()
+        print ('state', self._state)
 
     def encrypt(self, plaintext):
         pass
@@ -46,4 +49,12 @@ class ECC(object):
         pass
 
     def verify(self, data, signature):
-        pass
+        if not self._public:
+            print 'You need a public key to verify a signature!'
+            return False
+
+        if not self._state:
+            print 'ECC object should have an internal _state member'
+            return False
+
+        return False
