@@ -17,9 +17,9 @@
  *  02111-1307 USA
  */
 
-#include "_pyecc.h"
 #include <stdio.h>
 
+#include "_pyecc.h"
 
 static char pyecc_doc[] = "\
 The _pyecc module provides underlying C hooks for the \
@@ -31,12 +31,54 @@ oriented support that the pyecc module does\n\
 ";
 
 
+static void *_release_state(void *_state)
+{
+    fprintf(stderr, "Freeing state object at %p\n", _state);
+    ecc_free_state((ECC_State)(_state));
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static char new_state_doc[] = "\
+Generate a new ECC_State object that will ensure the \
+libgcrypt state necessary for crypto is all set up and \
+ready for use\n\
+";
+static PyObject *new_state(PyObject *self, PyObject *args, PyObject **kwargs)
+{
+    ECC_State state = ecc_new_state(NULL);
+    fprintf(stderr, "Created state object at %p\n", state);
+
+    PyObject *rc = PyCObject_FromVoidPtr(state, _release_state);
+    if (!PyCObject_Check(rc)) {
+        if (state)
+            ecc_free_state(state);
+        return NULL;
+    }
+    return rc;
+}
+
 static struct PyMethodDef _pyecc_methods[] = {
-	{NULL, NULL, 0, NULL}
+    {"new_state", new_state, METH_NOARGS, new_state_doc},
+    {NULL, NULL, 0, NULL}
 };
 
 
 PyMODINIT_FUNC init_pyecc(void)
 {
-	PyObject *module = Py_InitModule3("_pyecc", _pyecc_methods, pyecc_doc);
+    PyECC_KeyPairType.tp_new = PyType_GenericNew;
+    PyECC_ECCType.tp_new = PyType_GenericNew;
+
+    if (PyType_Ready(&PyECC_KeyPairType) < 0)
+        return;
+    if (PyType_Ready(&PyECC_ECCType) < 0)
+        return;
+
+    PyObject *module = Py_InitModule3("_pyecc", _pyecc_methods, pyecc_doc);
+
+    Py_INCREF(&PyECC_ECCType);
+    PyModule_AddObject(module, "ECC", (PyObject *)(&PyECC_ECCType));
+
+    Py_INCREF(&PyECC_KeyPairType);
+    PyModule_AddObject(module, "PyECC_KeyPair", (PyObject *)(&PyECC_KeyPairType));
 }
