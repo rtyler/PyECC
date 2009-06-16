@@ -89,6 +89,4 @@ data, as some amount of state with libecc and libgcrypt is required", /* tp_doc 
 };
 
 
-
-
 #endif
