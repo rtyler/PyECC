@@ -130,10 +130,14 @@ static const struct curve curves[CURVE_NUM] = {
 
 /******************************************************************************/
 
-#define SCAN(x, s) do {                                            \
-    assert(! gcry_mpi_scan(x, GCRYMPI_FMT_HEX, s, 0, NULL));       \
-    gcry_mpi_set_flag(*x, GCRYMPI_FLAG_SECURE);		           \
-  } while(0)
+static void SCAN(gcry_mpi_t *x, char *s)
+{
+	if (gcry_mpi_scan(x, GCRYMPI_FMT_HEX, s, 0, NULL) != 0) {
+		fprintf(stderr, "Error scanning curve into MPI: %s\n", s);
+		return;
+	}
+	gcry_mpi_set_flag(*x, GCRYMPI_FLAG_SECURE);
+}
 
 static struct curve_params* load_curve(const struct curve *c)
 {
