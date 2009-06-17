@@ -160,7 +160,6 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
         Py_RETURN_NONE;
     
     const char *signature = (const char *)(result->data);
-    fprintf(stderr, "SIGNATURE: %s\n", signature);
     return PyString_FromStringAndSize(signature, strlen(signature));
 }
 
