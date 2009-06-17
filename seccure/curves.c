@@ -129,7 +129,7 @@ static const struct curve curves[CURVE_NUM] = {
 
 /******************************************************************************/
 
-static void SCAN(gcry_mpi_t *x, char *s)
+static void SCAN(gcry_mpi_t *x, const char *s)
 {
 	if (gcry_mpi_scan(x, GCRYMPI_FMT_HEX, s, 0, NULL) != 0) {
 		fprintf(stderr, "Error scanning curve into MPI: %s\n", s);
