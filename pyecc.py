@@ -47,7 +47,15 @@ class ECC(object):
         pass
 
     def sign(self, data):
-        pass
+        if not self._kp:
+            print 'You need a keypair object to verify a signature'
+            return False
+
+        if not self._state:
+            print 'ECC object should have an internal _state member'
+            return False
+
+        return _pyecc.sign(data, self._kp, self._state)
 
     def verify(self, data, signature):
         if not self._kp:

@@ -76,8 +76,7 @@ static void *_release_keypair(void *_keypair)
         }
         free(kp);
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -135,10 +134,40 @@ static PyObject *py_verify(PyObject *self, PyObject *args, PyObject *kwargs)
     Py_RETURN_FALSE;
 }
 
+
+static char sign_doc[] = "\
+Sign the specified string or block of data \
+being passed in. Should return a string representation \
+of the signature or None\n\
+";
+static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    PyObject *temp_state, *temp_keypair;
+    ECC_State state;
+    ECC_KeyPair keypair;
+    char *data;
+
+    if (!PyArg_ParseTuple(args, "sOO", &data, &temp_keypair,
+            &temp_state)) {
+        return NULL;
+    }
+
+    state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
+    keypair = (ECC_KeyPair)(PyCObject_AsVoidPtr(temp_keypair));
+
+    ECC_Data result = ecc_sign(data, keypair, state);
+    if ( (result == NULL) || (result->data == NULL) ) 
+        Py_RETURN_NONE;
+
+    return PyString_FromString( (const char *)(result->data) );
+}
+
+
 static struct PyMethodDef _pyecc_methods[] = {
     {"new_state", py_new_state, METH_NOARGS, new_state_doc},
     {"new_keypair", py_new_keypair, METH_VARARGS, new_keypair_doc},
     {"verify", py_verify, METH_VARARGS, verify_doc},
+    {"sign", py_sign, METH_VARARGS, sign_doc},
     {NULL, NULL, 0, NULL}
 };
 

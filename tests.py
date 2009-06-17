@@ -26,7 +26,18 @@ class ECC_Verify_Tests(unittest.TestCase):
         assert self.ecc.verify(DEFAULT_DATA, "FAIL") == False , ('Verified on a bad sig',
                 DEFAULT_DATA, DEFAULT_SIG, DEFAULT_PUBKEY, DEFAULT_PRIVKEY)
 
+class ECC_Sign_Tests(unittest.TestCase):
+    def setUp(self):
+        super(ECC_Sign_Tests, self).setUp()
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
 
+    def test_BasicSign(self):
+        signature = self.ecc.sign(DEFAULT_DATA)
+
+        assert signature == DEFAULT_SIG, ('Failed to generate a legit signature',
+                DEFAULT_SIG, signature)
+
+        
 
 if __name__ == '__main__':
     unittest.main()
