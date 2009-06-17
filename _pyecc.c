@@ -109,12 +109,38 @@ static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs
     return rc;
 }
 
+
+static char verify_doc[] = "\
+Verify that the specified data matches the given signature \
+and vice versa. Should return a True/False depending on the \
+success of the verification call\n\
+";
+static PyObject *py_verify(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    PyObject *temp_state, *temp_keypair;
+    ECC_State state;
+    ECC_KeyPair keypair;
+    char *data, *signature;
+
+    if (!PyArg_ParseTuple(args, "ssOO", &data, &signature, &temp_keypair,
+            &temp_state)) {
+        return NULL;
+    }
+
+    state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
+    keypair = (ECC_KeyPair)(PyCObject_AsVoidPtr(temp_keypair));
+
+    if (ecc_verify(data, signature, keypair, state)) 
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+}
+
 static struct PyMethodDef _pyecc_methods[] = {
-    {"new_state", new_state, METH_NOARGS, new_state_doc},
-    {"new_keypair", new_keypair, METH_VARARGS, new_keypair_doc},
+    {"new_state", py_new_state, METH_NOARGS, new_state_doc},
+    {"new_keypair", py_new_keypair, METH_VARARGS, new_keypair_doc},
+    {"verify", py_verify, METH_VARARGS, verify_doc},
     {NULL, NULL, 0, NULL}
 };
-
 
 PyMODINIT_FUNC init_pyecc(void)
 {
