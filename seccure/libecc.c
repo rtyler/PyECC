@@ -280,6 +280,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 
 	serialize_mpi(serialized, state->curveparams->sig_len_compact, 
 			DF_COMPACT, signature);
+	serialized[state->curveparams->sig_len_compact] = '\0';
 	rc->data = serialized;
 	
 	bailout:
