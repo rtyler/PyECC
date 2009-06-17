@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "_pyecc.h"
 
@@ -31,6 +32,12 @@ oriented support that the pyecc module does\n\
 ";
 
 
+
+static char new_state_doc[] = "\
+Generate a new ECC_State object that will ensure the \
+libgcrypt state necessary for crypto is all set up and \
+ready for use\n\
+";
 static void *_release_state(void *_state)
 {
     if (_state)
@@ -38,13 +45,7 @@ static void *_release_state(void *_state)
     Py_INCREF(Py_None);
     return Py_None;
 }
-
-static char new_state_doc[] = "\
-Generate a new ECC_State object that will ensure the \
-libgcrypt state necessary for crypto is all set up and \
-ready for use\n\
-";
-static PyObject *new_state(PyObject *self, PyObject *args, PyObject *kwargs)
+static PyObject *py_new_state(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     ECC_State state = ecc_new_state(NULL);
 
@@ -57,42 +58,45 @@ static PyObject *new_state(PyObject *self, PyObject *args, PyObject *kwargs)
     return rc;
 }
 
-static void *_release_keypair(void *_keypair)
-{
-    if (_keypair) {
-        ECC_KeyPair kp = (ECC_KeyPair)(_keypair);
-        if (kp->priv)
-            free(kp->priv);
-        /* We're assuming this was setup as a PyStringObject */
-        if (kp->pub) 
-            Py_DECREF((PyStringObject *)(kp->pub));
-        free(kp);
-    }
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+
 
 static char new_keypair_doc[] = "\
 Return a new ECC_KeyPair object that will contain the appropriate \
 references to the public and private keys in memory\n\
 ";
-static PyObject *new_keypair(PyObject *self, PyObject *args, PyObject *kwargs)
+static void *_release_keypair(void *_keypair)
 {
-    char *privkey;
-    /* 
-     * Pulling the public key coming from Python into a PyStringObject
-     * instead of copying the contents of the buffer into a newly allocated
-     * buffer (Py_DECREF() will be called in _release_keypair)
-     */
-    PyStringObject *pubkey;
+    if (_keypair) {
+        ECC_KeyPair kp = (ECC_KeyPair)(_keypair);
+        if (kp->priv) {
+            free(kp->priv);
+        }
+        if (kp->pub) {
+            free(kp->pub);
+        }
+        free(kp);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    char *privkey, *temp_pubkey, *pubkey;
     PyObject *temp_state;
     ECC_State state;
+    int pubkeylen = 0;
 
-    if (!PyArg_ParseTuple(args, "SsO", &pubkey, &privkey, &temp_state))
+    if (!PyArg_ParseTuple(args, "s#sO", &temp_pubkey, &pubkeylen, 
+                &privkey, &temp_state))
         return NULL;
 
+    if (pubkeylen < 1)
+        return NULL;
+
+    pubkey = (char *)(malloc(sizeof(char) * pubkeylen + 1));
+    memcpy(pubkey, temp_pubkey, pubkeylen + 1);
+    
     state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
-    Py_INCREF(pubkey);
 
     ECC_KeyPair kp = ecc_new_keypair(pubkey, privkey, state);
 
