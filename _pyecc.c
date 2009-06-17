@@ -159,8 +159,7 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
     if ( (result == NULL) || (result->data == NULL) ) 
         Py_RETURN_NONE;
     
-    const char *signature = (const char *)(result->data);
-    return PyString_FromStringAndSize(signature, strlen(signature));
+    return PyString_FromString((const char *)(result->data));
 }
 
 
