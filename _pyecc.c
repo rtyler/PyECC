@@ -158,8 +158,9 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
     ECC_Data result = ecc_sign(data, keypair, state);
     if ( (result == NULL) || (result->data == NULL) ) 
         Py_RETURN_NONE;
-
-    return PyString_FromString( (const char *)(result->data) );
+    
+    const char *signature = (const char *)(result->data);
+    return PyString_FromStringAndSize(signature, strlen(signature));
 }
 
 
