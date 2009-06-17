@@ -37,6 +37,10 @@ class ECC_Sign_Tests(unittest.TestCase):
         assert signature == DEFAULT_SIG, ('Failed to generate a legit signature',
                 DEFAULT_SIG, signature)
 
+    def test_SignNone(self):
+        signature = self.ecc.sign(None)
+
+        assert signature == None, ('Should have a None sig')
         
 
 if __name__ == '__main__':

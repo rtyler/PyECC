@@ -147,7 +147,7 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
     ECC_KeyPair keypair;
     char *data;
 
-    if (!PyArg_ParseTuple(args, "sOO", &data, &temp_keypair,
+    if (!PyArg_ParseTuple(args, "zOO", &data, &temp_keypair,
             &temp_state)) {
         return NULL;
     }
