@@ -36,8 +36,8 @@
  */
 
 #include <stdlib.h>
-#include <gcrypt.h>
 #include <assert.h>
+#include <gcrypt.h>
 
 #include "aes256ctr.h"
 

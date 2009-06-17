@@ -35,6 +35,7 @@
  *
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <gcrypt.h>
 #include <assert.h>
@@ -94,13 +95,16 @@ void serialize_mpi(char *outbuf, int outlen, enum disp_format df,
       Q = gcry_mpi_copy(x);
       R = gcry_mpi_snew(0);
       for(i = outlen - 1; i >= 0; i--) {
-	unsigned char digit = 0;
-	gcry_mpi_div(Q, R, Q, base, 0);
-	gcry_mpi_print(GCRYMPI_FMT_USG, &digit, 1, NULL, R);
-	assert(digit < COMPACT_DIGITS_COUNT);
-	outbuf[i] = compact_digits[digit];
+        unsigned char digit = 0;
+        gcry_mpi_div(Q, R, Q, base, 0);
+        gcry_mpi_print(GCRYMPI_FMT_USG, &digit, 1, NULL, R);
+        assert(digit < COMPACT_DIGITS_COUNT);
+        outbuf[i] = compact_digits[digit];
       }
-      assert(! gcry_mpi_cmp_ui(Q, 0));
+
+      if (gcry_mpi_cmp_ui(Q, 0)) {
+        fprintf(stderr, "Failed to execute gcry_mpi_cmp_ui()\n");
+      }
       gcry_mpi_release(base);
       gcry_mpi_release(Q);
       gcry_mpi_release(R);

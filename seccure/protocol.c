@@ -37,6 +37,7 @@
 
 #define ECDSA_DETERMINISTIC 1
 
+#include <stdio.h>
 #include <gcrypt.h>
 #include <assert.h>
 
@@ -68,8 +69,14 @@ gcry_mpi_t hash_to_exponent(const char *hash, const struct curve_params *cp)
   struct aes256cprng *cprng;
   gcry_mpi_t a;
   char *buf;
-  assert((buf = gcry_malloc_secure(len)));
-  assert((cprng = aes256cprng_init(hash)));
+  if (!(buf = gcry_malloc_secure(len))) {
+    fprintf(stderr, "Failed to allocate secure memory in hash_to_exponent()\n");
+    return NULL;
+  }
+  if (!(cprng = aes256cprng_init(hash))) {
+    fprintf(stderr, "aes256cprng_init() failed in hash_to_exponent()\n");
+    return NULL;
+  }
   aes256cprng_fillbuf(cprng, buf, len);
   aes256cprng_done(cprng);
   a = buf_to_exponent(buf, len, cp);
@@ -137,9 +144,15 @@ ecdsa_cprng_init(const char *msg, const gcry_mpi_t d,
   struct aes256cprng *cprng;
   gcry_md_hd_t mh;
   char *buf;
-  assert((buf = gcry_malloc_secure(len)));
+  if (!(buf = gcry_malloc_secure(len))) {
+    fprintf(stderr, "Failed to malloc secure memory in ecdsa_cprng_init()\n");
+    return NULL;
+  }
   serialize_mpi(buf, len, DF_BIN, d);
-  assert(hmacsha256_init(&mh, buf, len));
+  if (!hmacsha256_init(&mh, buf, len)) {
+    fprintf(stderr, "Failed to run hmacsha256_init()\n");
+    return NULL;
+  }
   gcry_free(buf);
   gcry_md_write(mh, msg, 64);
   gcry_md_final(mh);
@@ -155,7 +168,10 @@ ecdsa_cprng_get_exponent(struct aes256cprng *cprng,
   int len = cp->order_len_bin;
   gcry_mpi_t a;
   char *buf;
-  assert((buf = gcry_malloc_secure(len)));
+  if (!(buf = gcry_malloc_secure(len))) {
+    fprintf(stderr, "Failed to malloc secure memory in ecdsa_cprng_init()\n");
+    return NULL;
+  }
   aes256cprng_fillbuf(cprng, buf, len);
   a = buf_to_exponent(buf, len, cp);
   gcry_free(buf);
@@ -254,7 +270,10 @@ static void ECIES_KDF(char *key, const gcry_mpi_t Zx,
 		      const struct affine_point *R, int elemlen)
 {
   char *buf;
-  assert((buf = gcry_malloc_secure(3 * elemlen)));
+  if (!(buf = gcry_malloc_secure(3 * elemlen))) {
+    fprintf(stderr, "Failed to malloc secure memory in ECIES_KDF()\n");
+    return;;
+  }
   serialize_mpi(buf + 0 * elemlen, elemlen, DF_BIN, Zx);
   serialize_mpi(buf + 1 * elemlen, elemlen, DF_BIN, R->x);
   serialize_mpi(buf + 2 * elemlen, elemlen, DF_BIN, R->y);
@@ -306,7 +325,10 @@ int ECIES_decryption(char *key, const struct affine_point *R,
 static void DH_KDF(char *key, const struct affine_point *P, int elemlen)
 {
   char *buf;
-  assert((buf = gcry_malloc_secure(2 * elemlen)));
+  if (!(buf = gcry_malloc_secure(2 * elemlen))) {
+    fprintf(stderr, "Failed to malloc secure memory in DH_KDF()\n");
+    return;;
+  }
   serialize_mpi(buf + 0 * elemlen, elemlen, DF_BIN, P->x);
   serialize_mpi(buf + 1 * elemlen, elemlen, DF_BIN, P->y);
   gcry_md_hash_buffer(GCRY_MD_SHA512, key, buf, 2 * elemlen);

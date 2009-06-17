@@ -34,9 +34,8 @@
  * Report bugs to: seccure AT point-at-infinity.org
  *
  */
-
-#include <gcrypt.h>
 #include <assert.h>
+#include <gcrypt.h>
 
 #include "ecc.h"
 #include "numtheory.h"
@@ -120,7 +119,8 @@ int point_decompress(struct affine_point *p, const gcry_mpi_t x, int yflag,
 	gcry_mpi_set(p->y, y);
       else
 	gcry_mpi_sub(p->y, dp->m, y);
-      assert(point_on_curve(p, dp));
+    int rc = point_on_curve(p, dp);
+    assert(rc);
     }
   gcry_mpi_release(h);
   gcry_mpi_release(y);
@@ -363,7 +363,8 @@ struct affine_point pointmul(const struct affine_point *p,
   }
   R = jacobian_to_affine(&r, dp);
   jacobian_release(&r);
-  assert(point_on_curve(&R, dp));
+  int rc = point_on_curve(&R, dp);
+  assert(rc);
   return R;
 }
 
