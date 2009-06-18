@@ -27,21 +27,21 @@
     </xsl:template>
 
     <xsl:template match="/">
-        <xsl:for-each select="gtester/testbinary">
+        <xsl:for-each select="gtester">
             <testsuite>
                 <xsl:attribute name="name">
-                    <xsl:value-of select="@path"/>
+                    <xsl:value-of select="testbinary/@path"/>
                 </xsl:attribute>
                 <xsl:attribute name="tests">
-                    <xsl:value-of select="count(testcase)"/>
+                    <xsl:value-of select="count(testbinary/testcase)"/>
                 </xsl:attribute>
                 <xsl:attribute name="time">
-                    <xsl:value-of select="sum(testcase/duration)"/>
+                    <xsl:value-of select="sum(testbinary/testcase/duration)"/>
                 </xsl:attribute>
                 <xsl:attribute name="failures">
-                    <xsl:value-of select="count(testcase/status[@result='failed'])"/>
+                    <xsl:value-of select="count(testbinary/testcase/status[@result='failed'])"/>
                 </xsl:attribute>
-                <xsl:for-each select="testcase">
+                <xsl:for-each select="testbinary/testcase">
                     <testcase>
                         <xsl:variable name="classname">
                             <xsl:call-template name="strreplace">
