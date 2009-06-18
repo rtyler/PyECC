@@ -45,7 +45,7 @@
                     <testcase>
                         <xsl:variable name="classname">
                             <xsl:call-template name="strreplace">
-                                <xsl:with-param name="string" select="@path"/>
+                                <xsl:with-param name="string" select="substring-after(@path, '/')"/>
                                 <xsl:with-param name="token" select="'/'"/>
                                 <xsl:with-param name="newtoken" select="'.'"/>
                             </xsl:call-template>
