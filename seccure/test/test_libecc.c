@@ -189,6 +189,18 @@ void __test_keygen()
 }
 
 
+/**
+ * __test_encrypt should test the basic encryption
+ * of a string of data via ECC
+ */
+void __test_encrypt()
+{
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
+
+	g_assert(NULL);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -223,6 +235,11 @@ int main(int argc, char **argv)
 	g_test_add_func("/libecc/ecc_sign/default", __test_sign);
 	g_test_add_func("/libecc/ecc_sign/null_data", __test_sign_nulldata);
 	g_test_add_func("/libecc/ecc_sign/null_keypair", __test_sign_nullkp);
+
+	/*
+	 * Tests for ecc_encrypt()
+	 */
+	g_test_add_func("/libecc/ecc_encrypt/default", __test_encrypt);
 
 
 	return g_test_run();
