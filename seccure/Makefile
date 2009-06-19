@@ -1,12 +1,12 @@
 LDFLAGS += -lgcrypt 
 CFLAGS += -g -Wall -fPIC -O0 -Wstrict-prototypes -pthread -fno-strict-aliasing
 
-default: binaries doc libecc.so
+default: binaries doc libseccure.so
 
 binaries: seccure-key seccure-encrypt seccure-decrypt seccure-sign \
 	seccure-verify seccure-signcrypt seccure-veridec seccure-dh \
 
-OBJS = numtheory.o libecc.o ecc.o serialize.o protocol.o curves.o aes256ctr.o
+OBJS = numtheory.o libseccure.o ecc.o serialize.o protocol.o curves.o aes256ctr.o
 
 doc: seccure.1 seccure.1.html
 
@@ -33,8 +33,8 @@ seccure-key: seccure.o $(OBJS)
 	$(CC) $(CFLAGS) -o seccure-key $(LDFLAGS) seccure.o $(OBJS)
 	strip seccure-key
 
-libecc.so: $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -Wl -o libecc.so $(OBJS) 
+libseccure.so: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -Wl -o libseccure.so $(OBJS) 
 
 seccure-encrypt: seccure-key
 	ln -f seccure-key seccure-encrypt

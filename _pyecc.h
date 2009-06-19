@@ -22,7 +22,7 @@
 
 #include <Python.h>
 
-#include "seccure/libecc.h"
+#include "seccure/libseccure.h"
 
 
 #endif

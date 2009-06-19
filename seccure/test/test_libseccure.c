@@ -24,7 +24,7 @@
 
 #include <glib.h>
 
-#include "libecc.h"
+#include "libseccure.h"
 
 #define DEFAULT_DATA "This message will be signed\n"
 #define DEFAULT_SIG "$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq"
@@ -205,8 +205,6 @@ void __test_encrypt()
 
 	g_assert(result != NULL);
 	g_assert(result->data != NULL);
-
-	fprintf(stderr, "DATA %s DATA\n", (char *)(result->data));
 
 	if (result)
 		ecc_free_data(result);

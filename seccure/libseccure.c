@@ -25,7 +25,7 @@
 
 #include "curves.h"
 #include "ecc.h"
-#include "libecc.h"
+#include "libseccure.h"
 #include "protocol.h"
 #include "serialize.h"
 #include "aes256ctr.h"

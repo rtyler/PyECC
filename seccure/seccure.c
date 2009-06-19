@@ -50,7 +50,7 @@
 #include "protocol.h"
 #include "serialize.h"
 #include "aes256ctr.h"
-#include "libecc.h"
+#include "libseccure.h"
 
 #define ANSI_CLEAR_LINE "\033[1K\r"
 #define VERSION "0.4"

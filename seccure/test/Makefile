@@ -9,7 +9,7 @@ SECCURE-VERIDEC = $(SECCURE-PATH)"seccure-veridec"
 
 CFLAGS = -g -I../ 
 CFLAGS +=`pkg-config --cflags glib-2.0`
-LDFLAGS += -L../ -lecc
+LDFLAGS += -L../ -lseccure
 LDFLAGS += `pkg-config --libs glib-2.0`
 
 ENCCURVE = "p128"
@@ -17,13 +17,13 @@ SIGCURVE = "p256"
 MACLEN = "64"
 
 
-default: encdec-test signveri-test signcrypt-test test_libecc
+default: encdec-test signveri-test signcrypt-test test_libseccure
 
-test_libecc: 
-	$(CC) $(CFLAGS) $(LDFLAGS) test_libecc.c -o test_libecc
+test_libseccure: 
+	$(CC) $(CFLAGS) $(LDFLAGS) test_libseccure.c -o test_libseccure
 
 clean:
-	rm -f test_libecc public-encryption-key public-signature-key message.enc message.aux message.sig
+	rm -f test_libseccure public-encryption-key public-signature-key message.enc message.aux message.sig
 
 rebuild: clean default
 

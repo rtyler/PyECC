@@ -3,7 +3,7 @@ from distutils.core import setup, Extension
 
 base_modules = [
     Extension('_pyecc', [
-            'seccure/libecc.c',
+            'seccure/libseccure.c',
             'seccure/numtheory.c',
             'seccure/ecc.c',
             'seccure/serialize.c',
