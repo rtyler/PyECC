@@ -72,6 +72,8 @@ bool __verify_state(ECC_State state)
  */
 bool __init_ecc(ECC_State state)
 {
+	gcry_error_t err;
+	
 	/* Make sure we don't accidentally double-init */
 	if (state->gcrypt_init)
 		return true;
@@ -81,8 +83,6 @@ bool __init_ecc(ECC_State state)
 		state->gcrypt_init = true;
 		return true;
 	}
-	
-	gcry_error_t err;
 	
 	if (!gcry_check_version(REQUIRED_LIBGCRYPT)) {
 		__gwarning("Incorrect libgcrypt version", err);
@@ -228,6 +228,8 @@ ECC_Options ecc_new_options()
 
 ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
+	ECC_KeyPair result = NULL;
+	struct affine_point ap;
 	if (priv == NULL) {
 		/*
 		 * We should use a NULL private key as a signal to use
@@ -237,8 +239,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		return NULL;
 	}
 
-	ECC_KeyPair result = ecc_new_keypair(NULL, priv, state);
-	struct affine_point ap;
+	result = ecc_new_keypair(NULL, priv, state);
 	result->pub = (char *)(malloc(sizeof(char) * 
 			(state->curveparams->pk_len_compact + 1)));
 
@@ -254,6 +255,13 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State state)
 {
 	ECC_Data rc = NULL;
+	struct affine_point *P, *R;
+	struct aes256ctr *ac;
+	char *readbuf;
+	char *keybuf, *md;
+	void *plaintext = NULL;
+	unsigned int offset = 0;
+	gcry_md_hd_t digest;
 
 	if ( (data == NULL) || (strlen(data) == 0) ) {
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
@@ -267,12 +275,6 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 		__warning("Invalid or uninitialized ECC_State object");
 		goto exit;
 	}
-
-	struct affine_point *P, *R;
-	struct aes256ctr *ac;
-	char *readbuf;
-	char *keybuf, *md;
-	gcry_md_hd_t digest;
 
 	readbuf = (char *)(malloc(sizeof(char) * state->curveparams->pk_len_bin));
 	P = (struct affine_point *)(malloc(sizeof(struct affine_point)));
@@ -312,7 +314,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 			(sizeof(char) * databytes) +
 			(sizeof(char) * DEFAULT_MAC_LEN)));
 
-	void *plaintext = (void *)(malloc(sizeof(char) * databytes));
+	plaintext = (void *)(malloc(sizeof(char) * databytes));
 	memcpy(plaintext, data, databytes);
 
 	aes256ctr_enc(ac, plaintext, databytes);
@@ -324,8 +326,8 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	/* 
 	 * Overlay the three segments for the data buffer via memcpy(3)
 	 */
-	unsigned int offset = state->curveparams->pk_len_bin;
 	memcpy(rc->data, readbuf, offset);
+	offset = state->curveparams->pk_len_bin;
 
 	memcpy((void *)(rc->data + offset), plaintext, databytes);
 	offset += databytes;
@@ -335,8 +337,6 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	free(plaintext);
 	gcry_md_close(digest);
 
-	goto bailout;
-
 	bailout:
 		gcry_free(keybuf);
 		point_release(P);
@@ -344,7 +344,6 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 		free(P);
 		free(R);
 		free(readbuf);
-		goto exit;
 	exit:
 		return rc;
 }
@@ -352,6 +351,10 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 {
 	ECC_Data rc = NULL;
+	gcry_md_hd_t digest;
+	gcry_error_t err;
+	gcry_mpi_t signature;
+	char *digest_buf, *serialized;
 
 	/* 
 	 * Preliminary argument checks, just for sanity of the library 
@@ -368,11 +371,6 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 		__warning("Invalid or uninitialized ECC_State object");
 		goto exit;
 	}
-
-	gcry_md_hd_t digest;
-	gcry_error_t err;
-	gcry_mpi_t signature;
-	char *digest_buf = NULL;
 
 	/*
 	 * Open up message digest for the signing
@@ -403,7 +401,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	}
 
 	rc = ecc_new_data();
-	char *serialized = (char *)(malloc(sizeof(char) * 
+	serialized = (char *)(malloc(sizeof(char) * 
 			(1 + state->curveparams->sig_len_compact)));
 
 	serialize_mpi(serialized, state->curveparams->sig_len_compact, 
@@ -414,7 +412,6 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	bailout:
 		gcry_mpi_release(signature);
 		gcry_md_close(digest);
-		goto exit;
 	exit:
 		return rc;
 }
@@ -423,6 +420,12 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State state)
 {
 	bool rc = false;
+	struct affine_point _ap;
+	gcry_error_t err;
+	gcry_mpi_t deserialized_sig;
+	gcry_md_hd_t digest;
+	char *digest_buf = NULL;
+	int result = 0;
 
 	/*
 	 * Preliminary argument checks, just for sanity of the library
@@ -443,13 +446,6 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 		__warning("Invalid or uninitialized ECC_State object");
 		goto exit;
 	}
-
-	struct affine_point _ap;
-	gcry_error_t err;
-	gcry_mpi_t deserialized_sig;
-	gcry_md_hd_t digest;
-	char *digest_buf = NULL;
-	int result = 0;
 
 	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, state->curveparams)) {
 		__warning("Invalid public key");
@@ -493,7 +489,6 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 	bailout:
 		point_release(&_ap);
 		gcry_md_close(digest);
-		goto exit;
 	exit:
 		return rc;
 }

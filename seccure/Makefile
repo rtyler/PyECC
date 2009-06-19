@@ -28,6 +28,8 @@ clean:
 
 rebuild: clean default
 
+libseccure.o:
+	$(CC) $(CFLAGS) -pedantic -Werror -c libseccure.c
 
 seccure-key: seccure.o $(OBJS)
 	$(CC) $(CFLAGS) -o seccure-key $(LDFLAGS) seccure.o $(OBJS)
