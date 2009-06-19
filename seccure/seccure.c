@@ -56,7 +56,6 @@
 #define VERSION "0.4"
 
 #define COPYBUF_SIZE (1 << 20)
-#define DEFAULT_MAC_LEN 10
 
 int opt_help = 0;
 int opt_verbose = 0;
@@ -344,92 +343,92 @@ void app_print_public_key(void)
 
 void app_encrypt(const char *pubkey)
 {
-  struct affine_point P, R;
-  struct curve_params *cp;
+	struct affine_point P, R;
+	struct curve_params *cp;
 
-  if (opt_maclen < 0) {
-    opt_maclen = DEFAULT_MAC_LEN;
-    fprintf(stderr, "Assuming MAC length of %d bits.\n", 8 * DEFAULT_MAC_LEN);
-  }
+	if (opt_maclen < 0) {
+		opt_maclen = DEFAULT_MAC_LEN;
+		fprintf(stderr, "Assuming MAC length of %d bits.\n", 8 * DEFAULT_MAC_LEN);
+	}
 
-  if (opt_curve) {
-    if (! (cp = curve_by_name(opt_curve)))
-      fatal("Invalid curve name");
-  }
-  else
-    if (! (cp = curve_by_pk_len_compact(strlen(pubkey))))
-      fatal("Invalid encryption key (wrong length)");
+	if (opt_curve) {
+		if (! (cp = curve_by_name(opt_curve)))
+			fatal("Invalid curve name");
+	}
+	else
+		if (! (cp = curve_by_pk_len_compact(strlen(pubkey))))
+			fatal("Invalid encryption key (wrong length)");
 
-  if (opt_verbose) {
-    print_quiet("VERSION: ", 0);
-    fprintf(stderr, VERSION "\n"); 
-    print_quiet("CURVE: ", 0); 
-    fprintf(stderr, "%s\n", cp->name); 
-    print_quiet("MACLEN: ", 0); 
-    fprintf(stderr, "%d\n", 8 * opt_maclen); 
-  }
+	if (opt_verbose) {
+		print_quiet("VERSION: ", 0);
+		fprintf(stderr, VERSION "\n"); 
+		print_quiet("CURVE: ", 0); 
+		fprintf(stderr, "%s\n", cp->name); 
+		print_quiet("MACLEN: ", 0); 
+		fprintf(stderr, "%d\n", 8 * opt_maclen); 
+	}
 
-  if (strlen(pubkey) != cp->pk_len_compact)
-    fatal("Invalid encryption key (wrong length)");
-    
-  if (decompress_from_string(&P, pubkey, DF_COMPACT, cp)) {
-    char rbuf[cp->pk_len_bin];
-    struct aes256ctr *ac;
-    char *keybuf, *md;
-    gcry_md_hd_t mh;
+	if (strlen(pubkey) != cp->pk_len_compact)
+		fatal("Invalid encryption key (wrong length)");
 
-    if (! (keybuf = gcry_malloc_secure(64)))
-      fatal("Out of secure memory");
-    R = ECIES_encryption(keybuf, &P, cp);
-    compress_to_string(rbuf, DF_BIN, &R, cp);
-    point_release(&P);
-    point_release(&R);
+	if (decompress_from_string(&P, pubkey, DF_COMPACT, cp)) {
+		char rbuf[cp->pk_len_bin];
+		struct aes256ctr *ac;
+		char *keybuf, *md;
+		gcry_md_hd_t mh;
 
-    if (opt_verbose) {
-      int i;
-      print_quiet("K_ENC: ", 0); 
-      for(i = 0; i < 32; i++)
-	fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
-      fprintf(stderr, "\n");
-      print_quiet("K_MAC: ", 0);
-      for(i = 32; i < 64; i++)
-	fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
-      fprintf(stderr, "\n");
-    }
+		if (! (keybuf = gcry_malloc_secure(64)))
+			fatal("Out of secure memory");
+		R = ECIES_encryption(keybuf, &P, cp);
+		compress_to_string(rbuf, DF_BIN, &R, cp);
+		point_release(&P);
+		point_release(&R);
 
-    if (! (ac = aes256ctr_init(keybuf)))
-      fatal("Cannot initialize AES256-CTR");
-    if (opt_maclen && ! hmacsha256_init(&mh, keybuf + 32, HMAC_KEY_SIZE))
-      fatal("Cannot initialize HMAC-SHA256");
-    gcry_free(keybuf);
+		if (opt_verbose) {
+			int i;
+			print_quiet("K_ENC: ", 0); 
+			for(i = 0; i < 32; i++)
+				fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
+			fprintf(stderr, "\n");
+			print_quiet("K_MAC: ", 0);
+			for(i = 32; i < 64; i++)
+				fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
+			fprintf(stderr, "\n");
+		}
 
-    if (isatty(opt_fdin))
-      print_quiet("Go ahead and type your message ...\n", 0);
+		if (! (ac = aes256ctr_init(keybuf)))
+			fatal("Cannot initialize AES256-CTR");
+		if (opt_maclen && ! hmacsha256_init(&mh, keybuf + 32, HMAC_KEY_SIZE))
+			fatal("Cannot initialize HMAC-SHA256");
+		gcry_free(keybuf);
 
-    write_block(opt_fdout, rbuf, cp->pk_len_bin);
-    encryption_loop(opt_fdin, opt_fdout, ac, NULL, opt_maclen ? &mh : NULL);
+		if (isatty(opt_fdin))
+			print_quiet("Go ahead and type your message ...\n", 0);
 
-    aes256ctr_done(ac);
+		write_block(opt_fdout, rbuf, cp->pk_len_bin);
+		encryption_loop(opt_fdin, opt_fdout, ac, NULL, opt_maclen ? &mh : NULL);
 
-    if (opt_maclen) {
-      gcry_md_final(mh);
-      md = (char*)gcry_md_read(mh, 0);
+		aes256ctr_done(ac);
 
-      if (opt_verbose) {
-	int i;
-	print_quiet("HMAC: ", 0); 
-	for(i = 0; i < opt_maclen; i++)
-	  fprintf(stderr, "%02x", (unsigned char)md[i]);
-	fprintf(stderr, "\n");
-      }
-      
-      write_block(opt_fdout, md, opt_maclen);
-      gcry_md_close(mh);
-    }
-  }
-  else
-    fatal("Invalid encryption key");
-  curve_release(cp);
+		if (opt_maclen) {
+			gcry_md_final(mh);
+			md = (char*)gcry_md_read(mh, 0);
+
+			if (opt_verbose) {
+				int i;
+				print_quiet("HMAC: ", 0); 
+				for(i = 0; i < opt_maclen; i++)
+					fprintf(stderr, "%02x", (unsigned char)md[i]);
+				fprintf(stderr, "\n");
+			}
+
+			write_block(opt_fdout, md, opt_maclen);
+			gcry_md_close(mh);
+		}
+	}
+	else
+		fatal("Invalid encryption key");
+	curve_release(cp);
 }
 
 int app_decrypt(void)
