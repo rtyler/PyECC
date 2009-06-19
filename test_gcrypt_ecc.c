@@ -26,7 +26,7 @@ void __test_keygen()
 	gcry_error_t err;
 	
 	gcry_sexp_t spec, key_pair, list;
-	gcry_mpi_t pub;
+	gcry_mpi_t pub, priv;
 
 	err = gcry_sexp_build(&spec, NULL, "(genkey (ECDSA (nbits %d)))", 256);
 	if (err) {
@@ -43,6 +43,11 @@ void __test_keygen()
 	list = gcry_sexp_find_token(key_pair, "q", 1);
 	pub = gcry_sexp_nth_mpi (list, 1, GCRYMPI_FMT_USG);
 	gcry_sexp_release (list);
+
+	list = gcry_sexp_find_token(key_pair, "d", 1);
+	priv = gcry_sexp_nth_mpi(list, 1, GCRYMPI_FMT_USG);
+
+	gcry_sexp_release(list);
 	gcry_sexp_release (key_pair);
 	gcry_sexp_release (spec);
 
@@ -50,6 +55,10 @@ void __test_keygen()
 	size_t publen, privlen;
 	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &pubkey, &publen, pub);
 	fprintf(stderr, "PUB: (%d) %s %p\n", (int)publen, pubkey, pubkey);
+
+	unsigned char *privkey;
+	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &privkey, &privlen, priv);
+	fprintf(stderr, "PRIV: (%d) %s %p\n", (int)privlen, privkey, privkey);
 }
 
 int main(int argc, char **argv)
