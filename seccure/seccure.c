@@ -433,121 +433,121 @@ void app_encrypt(const char *pubkey)
 
 int app_decrypt(void)
 {
-  struct curve_params *cp;
-  struct affine_point R;
-  int res = 0;
+	struct curve_params *cp;
+	struct affine_point R;
+	int res = 0;
 
-  if (opt_maclen < 0) {
-    opt_maclen = DEFAULT_MAC_LEN;
-    fprintf(stderr, "Assuming MAC length of %d bits.\n", 8 * DEFAULT_MAC_LEN);
-  }
+	if (opt_maclen < 0) {
+		opt_maclen = DEFAULT_MAC_LEN;
+		fprintf(stderr, "Assuming MAC length of %d bits.\n", 8 * DEFAULT_MAC_LEN);
+	}
 
-  if (! opt_curve) {
-    opt_curve = DEFAULT_CURVE;
-    fprintf(stderr, "Assuming curve " DEFAULT_CURVE ".\n");
-  }
+	if (! opt_curve) {
+		opt_curve = DEFAULT_CURVE;
+		fprintf(stderr, "Assuming curve " DEFAULT_CURVE ".\n");
+	}
 
-  if ((cp = curve_by_name(opt_curve))) {
-    char *keybuf, *privkey;
-    char rbuf[cp->pk_len_bin];
-    char mdbuf[opt_maclen], *md;
-    struct aes256ctr *ac;
-    gcry_md_hd_t mh;
-    gcry_mpi_t d;
+	if ((cp = curve_by_name(opt_curve))) {
+		char *keybuf, *privkey;
+		char rbuf[cp->pk_len_bin];
+		char mdbuf[opt_maclen], *md;
+		struct aes256ctr *ac;
+		gcry_md_hd_t mh;
+		gcry_mpi_t d;
 
-    if (opt_verbose) {
-      print_quiet("VERSION: ", 0);
-      fprintf(stderr, VERSION "\n"); 
-      print_quiet("CURVE: ", 0); 
-      fprintf(stderr, "%s\n", cp->name); 
-      print_quiet("MACLEN: ", 0); 
-      fprintf(stderr, "%d\n", 8 * opt_maclen);
-    }
+		if (opt_verbose) {
+			print_quiet("VERSION: ", 0);
+			fprintf(stderr, VERSION "\n"); 
+			print_quiet("CURVE: ", 0); 
+			fprintf(stderr, "%s\n", cp->name); 
+			print_quiet("MACLEN: ", 0); 
+			fprintf(stderr, "%d\n", 8 * opt_maclen);
+		}
 
-    if (! (privkey = gcry_malloc_secure(32)))
-      fatal("Out of secure memory");
-    read_passphrase(privkey, "private key");
-    d = hash_to_exponent(privkey, cp);
-    gcry_free(privkey);
+		if (! (privkey = gcry_malloc_secure(32)))
+			fatal("Out of secure memory");
+		read_passphrase(privkey, "private key");
+		d = hash_to_exponent(privkey, cp);
+		gcry_free(privkey);
 
-    if (isatty(opt_fdin))
-      print_quiet("Go ahead and enter the ciphertext ...\n", 0);
+		if (isatty(opt_fdin))
+			print_quiet("Go ahead and enter the ciphertext ...\n", 0);
 
-    if (read_block(opt_fdin, rbuf, cp->pk_len_bin)) {
-      if (decompress_from_string(&R, rbuf, DF_BIN, cp)) {
-	if (! (keybuf = gcry_malloc_secure(64)))
-	  fatal("Out of secure memory");
-	if (ECIES_decryption(keybuf, &R, d, cp)) {
+		if (read_block(opt_fdin, rbuf, cp->pk_len_bin)) {
+			if (decompress_from_string(&R, rbuf, DF_BIN, cp)) {
+				if (! (keybuf = gcry_malloc_secure(64)))
+					fatal("Out of secure memory");
+				if (ECIES_decryption(keybuf, &R, d, cp)) {
 
-	  if (opt_verbose) {
-	    int i;
-	    print_quiet("K_ENC: ", 0); 
-	    for(i = 0; i < 32; i++)
-	      fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
-	    fprintf(stderr, "\n");
-	    print_quiet("K_MAC: ", 0); 
-	    for(i = 32; i < 64; i++)
-	      fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
-	    fprintf(stderr, "\n");
-	  }
+					if (opt_verbose) {
+						int i;
+						print_quiet("K_ENC: ", 0); 
+						for(i = 0; i < 32; i++)
+							fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
+						fprintf(stderr, "\n");
+						print_quiet("K_MAC: ", 0); 
+						for(i = 32; i < 64; i++)
+							fprintf(stderr, "%02x", (unsigned char)keybuf[i]);
+						fprintf(stderr, "\n");
+					}
 
-	  if (! (ac = aes256ctr_init(keybuf)))
-	    fatal("Cannot initialize AES256-CTR");
-	  if (opt_maclen && ! hmacsha256_init(&mh, keybuf + 32, HMAC_KEY_SIZE))
-	    fatal("Cannot initialize HMAC-SHA256");
-	  memset(keybuf, 0x00, 64);
-	
-	  decryption_loop(opt_fdin, opt_fdout, ac, opt_maclen ? &mh : NULL, 
-			  NULL, mdbuf, opt_maclen);
+					if (! (ac = aes256ctr_init(keybuf)))
+						fatal("Cannot initialize AES256-CTR");
+					if (opt_maclen && ! hmacsha256_init(&mh, keybuf + 32, HMAC_KEY_SIZE))
+						fatal("Cannot initialize HMAC-SHA256");
+					memset(keybuf, 0x00, 64);
 
-	  aes256ctr_done(ac);
+					decryption_loop(opt_fdin, opt_fdout, ac, opt_maclen ? &mh : NULL, 
+								NULL, mdbuf, opt_maclen);
 
-	  if (opt_maclen) {
-	    gcry_md_final(mh);
-	    md = (char*)gcry_md_read(mh, 0);
+					aes256ctr_done(ac);
 
-	    if (opt_verbose) {
-	      int i;
-	      print_quiet("HMAC1: ", 0); 
-	      for(i = 0; i < opt_maclen; i++)
-		fprintf(stderr, "%02x", (unsigned char)md[i]);
-	      fprintf(stderr, "\n");
-	      print_quiet("HMAC2: ", 0); 
-	      for(i = 0; i < opt_maclen; i++)
-		fprintf(stderr, "%02x", (unsigned char)mdbuf[i]);
-	      fprintf(stderr, "\n");
-	    }
-	  
-	    if ((res = ! memcmp(mdbuf, md, opt_maclen)))
-	      print_quiet("Integrity check successful, message unforged!\n", 0);
-	    else
-	      print_quiet("Integrity check failed, message forged!\n", 1);
+					if (opt_maclen) {
+						gcry_md_final(mh);
+						md = (char*)gcry_md_read(mh, 0);
 
-	    gcry_md_close(mh);
-	  }
-	  else {
-	    res = 1;
-	    print_quiet("Warning: No MAC available, message integrity cannot "
-			"be verified!\n", 0);
-	  }
+						if (opt_verbose) {
+							int i;
+							print_quiet("HMAC1: ", 0); 
+							for(i = 0; i < opt_maclen; i++)
+								fprintf(stderr, "%02x", (unsigned char)md[i]);
+							fprintf(stderr, "\n");
+							print_quiet("HMAC2: ", 0); 
+							for(i = 0; i < opt_maclen; i++)
+								fprintf(stderr, "%02x", (unsigned char)mdbuf[i]);
+							fprintf(stderr, "\n");
+						}
+
+						if ((res = ! memcmp(mdbuf, md, opt_maclen)))
+							print_quiet("Integrity check successful, message unforged!\n", 0);
+						else
+							print_quiet("Integrity check failed, message forged!\n", 1);
+
+						gcry_md_close(mh);
+					}
+					else {
+						res = 1;
+						print_quiet("Warning: No MAC available, message integrity cannot "
+								"be verified!\n", 0);
+					}
+				}
+				else
+					print_quiet("Abort: Inconsistent header.\n", 1);
+				gcry_free(keybuf);
+				point_release(&R);
+			}
+			else
+				print_quiet("Abort: Inconsistent header.\n", 1);
+		}
+		else 
+			print_quiet("Abort: Inconsistent header (too short).\n", 1);
+
+		gcry_mpi_release(d);
+		curve_release(cp);
 	}
 	else
-	  print_quiet("Abort: Inconsistent header.\n", 1);
-	gcry_free(keybuf);
-	point_release(&R);
-      }
-      else
-	print_quiet("Abort: Inconsistent header.\n", 1);
-    }
-    else 
-      print_quiet("Abort: Inconsistent header (too short).\n", 1);
-
-    gcry_mpi_release(d);
-    curve_release(cp);
-  }
-  else
-    fatal("Invalid curve name");
-  return ! res;
+		fatal("Invalid curve name");
+	return ! res;
 }
 
 void app_sign(void)
