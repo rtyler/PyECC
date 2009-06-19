@@ -328,11 +328,11 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	 */
 	memcpy(rc->data, readbuf, offset);
 	offset = state->curveparams->pk_len_bin;
-
-	memcpy((void *)(rc->data + offset), plaintext, databytes);
+	
+	memcpy((char *)(rc->data) + offset, plaintext, databytes);
 	offset += databytes;
 
-	memcpy((void *)(rc->data + offset), md, DEFAULT_MAC_LEN);
+	memcpy((char *)(rc->data) + offset, md, DEFAULT_MAC_LEN);
 
 	free(plaintext);
 	gcry_md_close(digest);
