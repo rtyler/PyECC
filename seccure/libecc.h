@@ -32,6 +32,7 @@
  * Default curve to use when encrypting, etc
  */
 #define DEFAULT_CURVE "p160"
+#define DEFAULT_MAC_LEN 10
 
 
 /**
@@ -83,6 +84,10 @@ ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state);
  */
 ECC_Data ecc_new_data(void);
 /**
+ * Free and release an ::ECC_Data object
+ */
+void ecc_free_data(ECC_Data data);
+/**
  * Allocate an empty ::ECC_Options
  *
  * ecc_new_options() will fill out a few default values for the options
@@ -120,7 +125,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state);
  *
  * @return An allocated buffer with the encrypted data 
  */
-ECC_Data ecc_encrypt(void *data, ECC_KeyPair keypair);
+ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State state);
 
 
 /**

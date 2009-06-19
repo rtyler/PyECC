@@ -31,6 +31,8 @@
 #define DEFAULT_PUBKEY "8W;>i^H0qi|J&$coR5MFpR*Vn"
 #define DEFAULT_PRIVKEY "my private key"
 
+#define DEFAULT_PLAINTEXT "This is a very very secret message!\n"
+
 
 /**
  * __test_verify() will test the ecc_verify() function to comply with 
@@ -198,7 +200,16 @@ void __test_encrypt()
 	ECC_State state = ecc_new_state(NULL);
 	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 
-	g_assert(NULL);
+	ECC_Data result = ecc_encrypt(DEFAULT_PLAINTEXT, strlen(DEFAULT_PLAINTEXT), 
+			kp, state);
+
+	g_assert(result != NULL);
+	g_assert(result->data != NULL);
+
+	fprintf(stderr, "DATA %s DATA\n", (char *)(result->data));
+
+	if (result)
+		ecc_free_data(result);
 }
 
 

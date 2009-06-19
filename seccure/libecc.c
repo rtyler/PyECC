@@ -28,6 +28,7 @@
 #include "libecc.h"
 #include "protocol.h"
 #include "serialize.h"
+#include "aes256ctr.h"
 
 static unsigned int __init_ecc_refcount = 0;
 
@@ -42,6 +43,29 @@ void __warning(const char *message)
 {
 	fprintf(stderr, "WARNING: %s\n", message);
 }
+
+bool __verify_keypair(ECC_KeyPair keypair, bool require_private, bool require_public)
+{
+	if (keypair == NULL)
+		return false;
+	if (require_private) {
+		if ( (keypair->priv == NULL) || (strlen(keypair->priv) == 0) )
+			return false;
+	}
+	if (require_public) {
+		if ( (keypair->pub == NULL) || (strlen(keypair->pub) == 0) )
+			return false;
+	}
+	return true;
+}
+
+bool __verify_state(ECC_State state)
+{
+	if ( (state == NULL) || (!state->gcrypt_init) )
+		return false;
+	return true;
+}
+
 
 /**
  * Handle initializing libgcrypt and some other preliminary necessities
@@ -180,6 +204,13 @@ ECC_Data ecc_new_data()
 	bzero(data, sizeof(struct _ECC_Data));
 	return data;
 }
+void ecc_free_data(ECC_Data data)
+{
+	if (!(data->data == NULL))
+		free(data->data);
+	free(data);
+}
+
 
 
 ECC_Options ecc_new_options()
@@ -220,6 +251,104 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 }
 
 
+ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State state)
+{
+	ECC_Data rc = NULL;
+
+	if ( (data == NULL) || (strlen(data) == 0) ) {
+		__warning("Invalid or empty `data` argument passed to ecc_verify()");
+		goto exit;
+	}
+	if (!__verify_keypair(keypair, false, true)) {
+		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
+		goto exit;
+	}
+	if (!__verify_state(state)) {
+		__warning("Invalid or uninitialized ECC_State object");
+		goto exit;
+	}
+
+	struct affine_point *P, *R;
+	struct aes256ctr *ac;
+	char *readbuf;
+	char *keybuf, *md;
+	gcry_md_hd_t digest;
+
+	readbuf = (char *)(malloc(sizeof(char) * state->curveparams->pk_len_bin));
+	P = (struct affine_point *)(malloc(sizeof(struct affine_point)));
+	R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
+
+	if (!decompress_from_string(P, keypair->pub, DF_COMPACT, state->curveparams)) {
+		__warning("Failed to decompress_from_string() in ecc_encrypt()");
+		goto exit;
+	}
+
+	/* Why only 64? */
+	if (!(keybuf = gcry_malloc_secure(64))) { 
+		__warning("Out of secure memory!");
+		goto exit;
+	}
+	*R = ECIES_encryption(keybuf, P, state->curveparams);
+	compress_to_string(readbuf, DF_BIN, R, state->curveparams);
+
+	if (!(ac = aes256ctr_init(keybuf))) {
+		__warning("Cannot initialize AES256-CTR");
+		goto bailout;
+	}
+	if (!(hmacsha256_init(&digest, keybuf + 32, HMAC_KEY_SIZE))) {
+		__warning("Couldn't initialize HMAC-SHA256");
+		goto bailout;
+	}
+
+	rc = ecc_new_data();
+	/*
+	 * The data buffer should be in three sections:
+	 *    - rbuffer
+	 *    - cipher
+	 *    - hmac
+	 */
+	rc->data = (void *)(malloc( 
+			(sizeof(char) * state->curveparams->pk_len_bin) + 
+			(sizeof(char) * databytes) +
+			(sizeof(char) * DEFAULT_MAC_LEN)));
+
+	void *plaintext = (void *)(malloc(sizeof(char) * databytes));
+	memcpy(plaintext, data, databytes);
+
+	aes256ctr_enc(ac, plaintext, databytes);
+	aes256ctr_done(ac);
+
+	gcry_md_final(digest);
+	md = (char *)(gcry_md_read(digest, 0));
+
+	/* 
+	 * Overlay the three segments for the data buffer via memcpy(3)
+	 */
+	unsigned int offset = state->curveparams->pk_len_bin;
+	memcpy(rc->data, readbuf, offset);
+
+	memcpy((void *)(rc->data + offset), plaintext, databytes);
+	offset += databytes;
+
+	memcpy((void *)(rc->data + offset), md, DEFAULT_MAC_LEN);
+
+	free(plaintext);
+	gcry_md_close(digest);
+
+	goto bailout;
+
+	bailout:
+		gcry_free(keybuf);
+		point_release(P);
+		point_release(R);
+		free(P);
+		free(R);
+		free(readbuf);
+		goto exit;
+	exit:
+		return rc;
+}
+
 ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 {
 	ECC_Data rc = NULL;
@@ -231,12 +360,11 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		goto exit;
 	}
-	if ( (keypair == NULL) || (keypair->priv == NULL) || 
-			(strlen(keypair->priv) == 0) ) {
+	if (!__verify_keypair(keypair, true, false)) {
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		goto exit;
 	}
-	if ( (state == NULL) || (!state->gcrypt_init) ) {
+	if (!__verify_state(state)) {
 		__warning("Invalid or uninitialized ECC_State object");
 		goto exit;
 	}
