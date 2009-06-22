@@ -273,12 +273,12 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	/* Why only 64? */
 	if (!(keybuf = gcry_malloc_secure(64))) { 
 		__warning("Out of secure memory!");
-		goto exit;
+		goto bailout;
 	}
 
 	if (!ECIES_decryption(keybuf, R, keypair->priv, state->curveparams)) {
 		__warning("ECIES_decryption() failed");
-		goto exit;
+		goto bailout;
 	}
 
 	if (!(ac = aes256ctr_init(keybuf))) {
@@ -304,6 +304,7 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 
 	aes256ctr_dec(ac, block, offset);
 	aes256ctr_done(ac);
+	gcry_md_close(digest);
 
 	offset = offset - DEFAULT_MAC_LEN;
 	rc->data = (void *)(malloc(sizeof(char) * offset));
@@ -311,6 +312,7 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 
 	bailout:
 		point_release(R);
+		free(R);
 		gcry_free(keybuf);
 	exit:
 		return rc;
