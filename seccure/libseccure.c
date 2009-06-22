@@ -49,7 +49,7 @@ bool __verify_keypair(ECC_KeyPair keypair, bool require_private, bool require_pu
 	if (keypair == NULL)
 		return false;
 	if (require_private) {
-		if ( (keypair->priv == NULL) || (strlen(keypair->priv) == 0) )
+		if (keypair->priv == NULL)
 			return false;
 	}
 	if (require_public) {
@@ -202,6 +202,7 @@ ECC_Data ecc_new_data()
 {
 	ECC_Data data = (ECC_Data)(malloc(sizeof(struct _ECC_Data)));
 	bzero(data, sizeof(struct _ECC_Data));
+	data->datalen = 0;
 	return data;
 }
 void ecc_free_data(ECC_Data data)
@@ -333,6 +334,9 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	offset += databytes;
 
 	memcpy((char *)(rc->data) + offset, md, DEFAULT_MAC_LEN);
+	offset += DEFAULT_MAC_LEN;
+
+	rc->datalen = offset;
 
 	free(plaintext);
 	gcry_md_close(digest);

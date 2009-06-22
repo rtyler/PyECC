@@ -20,6 +20,7 @@
 #ifndef _LIBECC_H_
 #define _LIBECC_H_
 
+#include <gcrypt.h>
 #include <stdbool.h>
 
 
@@ -40,7 +41,7 @@
  * keys necessary for ECC sign/verify/encrypt and decrypting.
  */
 struct _ECC_KeyPair {
-	void *priv;
+	gcry_mpi_t priv;
 	void *pub;
 	unsigned int pub_len;
 };
@@ -51,6 +52,7 @@ typedef struct _ECC_KeyPair* ECC_KeyPair;
  */
 struct _ECC_Data {
 	void *data;
+	unsigned int datalen;
 };
 typedef struct _ECC_Data* ECC_Data;
 
@@ -133,7 +135,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
  *
  * @return An allocated buffer with the decrypted data
  */
-ECC_Data ecc_decrypt(void *encrypted, ECC_KeyPair keypair);
+ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state);
 
 
 /**
