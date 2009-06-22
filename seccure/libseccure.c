@@ -252,6 +252,75 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	return result;
 }
 
+ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
+{
+	ECC_Data rc = NULL;
+	struct affine_point *R;
+	int offset;
+	char *keybuf, *block;
+	char *md;
+	struct aes256ctr *ac;
+	gcry_md_hd_t digest;
+	gcry_mpi_t decrypted;
+
+	/*
+	 * Take the first bits off buffer to get the curve info
+	 */
+	if (!decompress_from_string(R, (char *)(encrypted->data), DF_BIN, 
+				state->curveparams)) {
+		__warning("Failed to decompress_from_string() in ecc_decrypt()");
+		goto exit;
+	}
+
+	/* Why only 64? */
+	if (!(keybuf = gcry_malloc_secure(64))) { 
+		__warning("Out of secure memory!");
+		goto exit;
+	}
+
+	if (!ECIES_decryption(keybuf, R, keypair->priv, state->curveparams)) {
+		__warning("ECIES_decryption() failed");
+		goto exit;
+	}
+
+	if (!(ac = aes256ctr_init(keybuf))) {
+		__warning("Cannot initialize AES256-CTR");
+		goto bailout;
+	}
+
+	if (!(hmacsha256_init(&digest, keybuf + 32, HMAC_KEY_SIZE))) {
+		__warning("Couldn't initialize HMAC-SHA256");
+		goto bailout;
+	}
+
+	rc = ecc_new_data();
+	memset(keybuf, 0x00, 64);
+
+	/*
+	 * Decrypt the rest of the block (the actual encrypted data)
+	 */
+	block = ((char *)(encrypted->data) + state->curveparams->pk_len_bin);
+	offset = (encrypted->datalen - state->curveparams->pk_len_bin);
+
+	gcry_md_write(digest, block, offset);
+
+	aes256ctr_dec(ac, block, offset);
+	aes256ctr_done(ac);
+
+	gcry_md_final(digest);
+	md = (char *)(gcry_md_read(digest, 0));
+	
+	fprintf(stderr, "FAIL: %s\n", md);
+	gcry_md_close(digest);
+
+	bailout:
+		if (decrypted)
+			gcry_mpi_release(decrypted);
+		point_release(R);
+		gcry_free(keybuf);
+	exit:
+		return rc;
+}
 
 ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State state)
 {

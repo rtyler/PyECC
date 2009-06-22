@@ -206,6 +206,8 @@ void __test_encrypt()
 	g_assert(result != NULL);
 	g_assert(result->data != NULL);
 
+	g_assert_cmpstr(DEFAULT_PLAINTEXT, ==, (char *)(ecc_decrypt(result, kp, state)));
+
 	if (result)
 		ecc_free_data(result);
 }
