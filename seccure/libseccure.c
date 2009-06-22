@@ -255,13 +255,11 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 {
 	ECC_Data rc = NULL;
-	struct affine_point *R;
 	int offset;
 	char *keybuf, *block;
-	char *md;
 	struct aes256ctr *ac;
 	gcry_md_hd_t digest;
-	gcry_mpi_t decrypted;
+	struct affine_point *R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 
 	/*
 	 * Take the first bits off buffer to get the curve info
@@ -307,15 +305,11 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	aes256ctr_dec(ac, block, offset);
 	aes256ctr_done(ac);
 
-	gcry_md_final(digest);
-	md = (char *)(gcry_md_read(digest, 0));
-	
-	fprintf(stderr, "FAIL: %s\n", md);
-	gcry_md_close(digest);
+	offset = offset - DEFAULT_MAC_LEN;
+	rc->data = (void *)(malloc(sizeof(char) * offset));
+	memcpy(rc->data, block, offset);
 
 	bailout:
-		if (decrypted)
-			gcry_mpi_release(decrypted);
 		point_release(R);
 		gcry_free(keybuf);
 	exit:
@@ -396,7 +390,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	/* 
 	 * Overlay the three segments for the data buffer via memcpy(3)
 	 */
-	memcpy(rc->data, readbuf, offset);
+	memcpy(rc->data, readbuf, state->curveparams->pk_len_bin);
 	offset = state->curveparams->pk_len_bin;
 	
 	memcpy((char *)(rc->data) + offset, plaintext, databytes);

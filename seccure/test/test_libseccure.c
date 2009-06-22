@@ -198,6 +198,7 @@ void __test_keygen()
 void __test_encrypt()
 {
 	ECC_State state = ecc_new_state(NULL);
+	ECC_Data decrypted;
 	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 
 	ECC_Data result = ecc_encrypt(DEFAULT_PLAINTEXT, strlen(DEFAULT_PLAINTEXT), 
@@ -206,7 +207,8 @@ void __test_encrypt()
 	g_assert(result != NULL);
 	g_assert(result->data != NULL);
 
-	g_assert_cmpstr(DEFAULT_PLAINTEXT, ==, (char *)(ecc_decrypt(result, kp, state)));
+	decrypted = (char *)(ecc_decrypt(result, kp, state));
+	g_assert_cmpstr(DEFAULT_PLAINTEXT, ==, decrypted->data);
 
 	if (result)
 		ecc_free_data(result);
