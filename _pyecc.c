@@ -17,9 +17,9 @@
  *  02111-1307 USA
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <Python.h>
 
+#include <stdio.h>
 #include "_pyecc.h"
 
 static char pyecc_doc[] = "\
@@ -64,7 +64,29 @@ static char encrypt_doc[] = "\
 ";
 static PyObject *py_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    Py_RETURN_NONE;
+    PyObject *temp_state, *temp_keypair;
+    ECC_State state;
+    ECC_KeyPair keypair;
+    char *data;
+    unsigned int datalen;
+
+    if (!PyArg_ParseTuple(args, "sIOO", &data, &datalen, &temp_keypair,
+            &temp_state)) {
+        return NULL;
+    }
+
+    if (datalen <= 0)
+        Py_RETURN_NONE;
+
+    state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
+    keypair = (ECC_KeyPair)(PyCObject_AsVoidPtr(temp_keypair));
+
+    ECC_Data result = ecc_encrypt(data, datalen, keypair, state);
+
+    if ( (result == NULL) || (result->data == NULL) )
+        Py_RETURN_NONE;
+
+    return PyString_FromStringAndSize((char *)(result->data), result->datalen);
 }
 
 static char decrypt_doc[] = "\
@@ -72,7 +94,31 @@ static char decrypt_doc[] = "\
 ";
 static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    Py_RETURN_NONE;
+    PyObject *temp_state, *temp_keypair, *rc;
+    ECC_State state;
+    ECC_KeyPair keypair;
+    ECC_Data encrypted;
+    char *data;
+    int datalen;
+
+    if (!PyArg_ParseTuple(args, "s#OO", &data, &datalen, &temp_keypair,
+            &temp_state)) {
+        return NULL;
+    }
+
+    state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
+    keypair = (ECC_KeyPair)(PyCObject_AsVoidPtr(temp_keypair));
+    
+    encrypted = ecc_new_data();
+    encrypted->data = data;
+    encrypted->datalen = datalen;
+
+    ECC_Data result = ecc_decrypt(encrypted, keypair, state);
+
+    if ( (result == NULL) || (result->data == NULL) )
+        Py_RETURN_NONE;
+
+    return PyString_FromStringAndSize((char *)(result->data), result->datalen);
 }
 
 static char new_keypair_doc[] = "\

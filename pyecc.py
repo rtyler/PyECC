@@ -4,29 +4,6 @@ Copyright 2009 Slide, Inc.
 
 import _pyecc
 
-class KeyPair(object):
-    '''
-        KeyPair object contains the references to 
-        an encrypted private key, and an unencrypted
-        public key
-    '''
-    def __init__(self, *args, **kwargs):
-        self._private = kwargs.get('private_key')
-        self._public = kwargs.get('public_key')
-
-    @staticmethod
-    def generate(private_key=None):
-        '''
-            Generate a new KeyPair object, if specified
-            the `private_key` will be used to generate a
-            valid ECC public key.
-
-            If `private_key` is not specified, then a 
-            private key will also be generated
-        '''
-        pass
-
-
 class ECC(object):
     '''
         The ECC object must be instantiated to work with
@@ -41,10 +18,12 @@ class ECC(object):
         self._kp = _pyecc.new_keypair(self._public, self._private, self._state)
 
     def encrypt(self, plaintext):
-        pass
+        assert plaintext, 'You cannot encrypt "nothing"'
+        return _pyecc.encrypt(plaintext, len(plaintext), self._kp, self._state)
 
     def decrypt(self, ciphertext):
-        pass
+        assert ciphertext, 'You cannot decrypt "nothing"'
+        return _pyecc.decrypt(ciphertext, self._kp, self._state)
 
     def sign(self, data):
         if not self._kp:

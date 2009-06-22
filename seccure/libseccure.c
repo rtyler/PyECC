@@ -308,6 +308,7 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 
 	offset = offset - DEFAULT_MAC_LEN;
 	rc->data = (void *)(malloc(sizeof(char) * offset));
+	rc->datalen = offset;
 	memcpy(rc->data, block, offset);
 
 	bailout:
