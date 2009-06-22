@@ -59,6 +59,21 @@ static PyObject *py_new_state(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 
+static char encrypt_doc[] = "\
+\n\
+";
+static PyObject *py_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    Py_RETURN_NONE;
+}
+
+static char decrypt_doc[] = "\
+\n\
+";
+static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    Py_RETURN_NONE;
+}
 
 static char new_keypair_doc[] = "\
 Return a new ECC_KeyPair object that will contain the appropriate \
@@ -168,6 +183,8 @@ static struct PyMethodDef _pyecc_methods[] = {
     {"new_keypair", py_new_keypair, METH_VARARGS, new_keypair_doc},
     {"verify", py_verify, METH_VARARGS, verify_doc},
     {"sign", py_sign, METH_VARARGS, sign_doc},
+    {"encrypt", py_encrypt, METH_VARARGS, encrypt_doc},
+    {"decrypt", py_decrypt, METH_VARARGS, decrypt_doc},
     {NULL, NULL, 0, NULL}
 };
 

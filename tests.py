@@ -41,6 +41,22 @@ class ECC_Sign_Tests(unittest.TestCase):
         signature = self.ecc.sign(None)
 
         assert signature == None, ('Should have a None sig')
+
+class ECC_Encrypt_Tests(unittest.TestCase):
+    def setUp(self):
+        super(ECC_Encrypt_Tests, self).setUp()
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
+
+    def test_BasicEncrypt(self):
+        assert False
+
+class ECC_Decrypt_Tests(unittest.TestCase):
+    def setUp(self):
+        super(ECC_Decrypt_Tests, self).setUp()
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
+
+    def test_BasicDecrypt(self):
+        assert False
         
 
 if __name__ == '__main__':
