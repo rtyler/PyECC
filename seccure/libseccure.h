@@ -82,6 +82,10 @@ typedef struct _ECC_State* ECC_State;
  */
 ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state);
 /**
+ * Free and release an ::ECC_KeyPair
+ */
+void ecc_free_keypair(ECC_KeyPair kp);
+/**
  * Allocate an empty ::ECC_Data
  */
 ECC_Data ecc_new_data(void);

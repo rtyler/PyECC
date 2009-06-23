@@ -160,6 +160,21 @@ void ecc_free_state(ECC_State state)
 
 	free(state);
 }
+
+void ecc_free_keypair(ECC_KeyPair kp)
+{
+	if (kp == NULL)
+		return;
+	
+	if (kp->priv) {
+		gcry_mpi_release(kp->priv);
+	}
+	if (kp->pub) {
+		free(kp->pub);
+	}
+	free(kp);
+}
+
 ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state)
 {
 	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
