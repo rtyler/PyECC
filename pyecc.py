@@ -32,6 +32,11 @@ class ECC(object):
         self._state = _pyecc.new_state()
         self._kp = _pyecc.new_keypair(self._public, self._private, self._state)
 
+    @staticmethod
+    def public_keygen(private_key):
+        assert private_key, 'Private key cannot be empty or None'
+        return _pyecc.pubkey_gen(private_key)
+
     def encrypt(self, plaintext):
         assert plaintext, 'You cannot encrypt "nothing"'
         return _pyecc.encrypt(plaintext, len(plaintext), self._kp, self._state)

@@ -14,6 +14,12 @@ DEFAULT_PUBKEY = '8W;>i^H0qi|J&$coR5MFpR*Vn'
 DEFAULT_PRIVKEY = 'my private key'
 DEFAULT_PLAINTEXT = 'This is a very very secret message!\n'
 
+class ECC_Pubkeygen_Tests(unittest.TestCase):
+    def test_Generate(self):
+        pubkey = pyecc.ECC.public_keygen(DEFAULT_PRIVKEY)
+        assert pubkey == DEFAULT_PUBKEY, ('Mismatch', pubkey, DEFAULT_PUBKEY)
+
+
 class ECC_Verify_Tests(unittest.TestCase):
     def setUp(self):
         super(ECC_Verify_Tests, self).setUp()

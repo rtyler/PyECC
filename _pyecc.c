@@ -222,6 +222,30 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
     return PyString_FromString((const char *)(result->data));
 }
 
+static char pubkeygen_doc [] = "\
+\n\
+";
+static PyObject *py_pubkeygen(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    ECC_State state = NULL;
+    ECC_KeyPair kp = NULL;
+    char *plaintext_privkey;
+    PyObject *pubkey;
+
+    if (!PyArg_ParseTuple(args, "s", &plaintext_privkey) < 0) 
+        return NULL;
+
+    state = ecc_new_state(NULL);
+    kp = ecc_keygen(plaintext_privkey, state);
+
+    pubkey = PyString_FromString((char *)(kp->pub));
+
+    ecc_free_state(state);
+    ecc_free_keypair(kp);
+
+    return pubkey;
+}
+
 
 static struct PyMethodDef _pyecc_methods[] = {
     {"new_state", py_new_state, METH_NOARGS, new_state_doc},
@@ -230,6 +254,7 @@ static struct PyMethodDef _pyecc_methods[] = {
     {"sign", py_sign, METH_VARARGS, sign_doc},
     {"encrypt", py_encrypt, METH_VARARGS, encrypt_doc},
     {"decrypt", py_decrypt, METH_VARARGS, decrypt_doc},
+    {"pubkey_gen", py_pubkeygen, METH_VARARGS, pubkeygen_doc},
     {NULL, NULL, 0, NULL}
 };
 
