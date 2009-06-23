@@ -261,4 +261,5 @@ static struct PyMethodDef _pyecc_methods[] = {
 PyMODINIT_FUNC init_pyecc(void)
 {
     PyObject *module = Py_InitModule3("_pyecc", _pyecc_methods, pyecc_doc);
+    PyModule_AddStringConstant(module, "DEFAULT_CURVE", DEFAULT_CURVE);
 }

@@ -19,6 +19,8 @@
 
 import _pyecc
 
+DEFAULT_CURVE = _pyecc.DEFAULT_CURVE
+
 class ECC(object):
     '''
         The ECC object must be instantiated to work with
