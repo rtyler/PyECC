@@ -39,6 +39,25 @@ class ECC(object):
         assert private_key, 'Private key cannot be empty or None'
         return _pyecc.pubkey_gen(private_key)
 
+    @staticmethod
+    def generate(read_func, progress_func=None, entropy=4096):
+        '''
+            Allow ECC to generate a private and public key
+            by reading entropy from `read_func` (assumes no args)
+
+            The `progress_func` if specified should take no arguments
+            and be used to indicate that the function is working
+        '''
+        privkey = []
+        for i in xrange(entropy):
+            char = read_func(1)
+            if i % 10:
+                progress_func()
+            privkey.append(char)
+        privkey = ''.join(privkey)
+        pubkey = ECC.public_keygen(privkey)
+        return (privkey, pubkey, DEFAULT_CURVE)
+
     def encrypt(self, plaintext):
         assert plaintext, 'You cannot encrypt "nothing"'
         return _pyecc.encrypt(plaintext, len(plaintext), self._kp, self._state)
