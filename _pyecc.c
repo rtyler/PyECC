@@ -233,7 +233,7 @@ static PyObject *py_pubkeygen(PyObject *self, PyObject *args, PyObject *kwargs)
     PyObject *pubkey;
     unsigned int keylen;
 
-    if (!PyArg_ParseTuple(args, "s#", &plaintext_privkey, &keylen) < 0) 
+    if (!PyArg_ParseTuple(args, "s#", &plaintext_privkey, &keylen)) 
         return NULL;
 
     state = ecc_new_state(NULL);
