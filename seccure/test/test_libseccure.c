@@ -113,7 +113,6 @@ void __test_new_data()
 {
 	ECC_Data ed = ecc_new_data();
 	g_assert(ed != NULL);
-	g_assert(ed->data == NULL);
 }
 
 
