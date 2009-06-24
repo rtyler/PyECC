@@ -231,14 +231,19 @@ static PyObject *py_pubkeygen(PyObject *self, PyObject *args, PyObject *kwargs)
     ECC_KeyPair kp = NULL;
     char *plaintext_privkey;
     PyObject *pubkey;
+    unsigned int keylen;
 
-    if (!PyArg_ParseTuple(args, "s", &plaintext_privkey) < 0) 
+    if (!PyArg_ParseTuple(args, "s#", &plaintext_privkey, &keylen) < 0) 
         return NULL;
 
     state = ecc_new_state(NULL);
     kp = ecc_keygen(plaintext_privkey, state);
 
     pubkey = PyString_FromString((char *)(kp->pub));
+    if (PyErr_Occurred()) {
+        Py_XDECREF(pubkey);
+        pubkey = NULL;
+    }
 
     ecc_free_state(state);
     ecc_free_keypair(kp);
