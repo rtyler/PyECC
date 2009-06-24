@@ -3,7 +3,9 @@
     Copyright 2009 Slide, Inc.
 
 '''
-
+import copy
+import sys
+import types
 import unittest
 
 import pyecc
@@ -72,4 +74,15 @@ class ECC_Decrypt_Tests(unittest.TestCase):
         
 
 if __name__ == '__main__':
-    unittest.main()
+    suites = []
+    items = copy.copy(locals())
+    for k, v in items.iteritems():
+        if isinstance(v, types.TypeType) and issubclass(v, unittest.TestCase):
+            suites.append(unittest.makeSuite(v))
+
+    runner = unittest.TextTestRunner()
+    if 'xml' in sys.argv:
+        import xmlrunner
+        runner = xmlrunner.XMLTestRunner(filename='Pyecc.pytests.xml')
+
+    results = runner.run(unittest.TestSuite(suites))
