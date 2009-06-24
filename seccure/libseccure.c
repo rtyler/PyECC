@@ -216,23 +216,21 @@ ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state)
 ECC_Data ecc_new_data()
 {
 	ECC_Data data = (ECC_Data)(malloc(sizeof(struct _ECC_Data)));
-	bzero(data, sizeof(struct _ECC_Data));
 	data->datalen = 0;
 	return data;
 }
 void ecc_free_data(ECC_Data data)
 {
-	if (!(data->data == NULL))
+	if (data == NULL)
+		return;
+	if (data->data != NULL)
 		free(data->data);
 	free(data);
 }
 
-
-
 ECC_Options ecc_new_options()
 {
 	ECC_Options opts = (ECC_Options)(malloc(sizeof(struct _ECC_Options)));
-	bzero(opts, sizeof(struct _ECC_Options));
 	/*
 	 * Setup the default values of the ::ECC_Options object
 	 */
