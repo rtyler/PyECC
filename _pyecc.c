@@ -143,14 +143,15 @@ static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs
     char *privkey, *temp_pubkey, *pubkey;
     PyObject *temp_state;
     ECC_State state;
-    int pubkeylen = 0;
+    unsigned int pubkeylen, privkeylen;
 
-    if (!PyArg_ParseTuple(args, "s#sO", &temp_pubkey, &pubkeylen, 
-                &privkey, &temp_state))
+    if (!PyArg_ParseTuple(args, "s#s#O", &temp_pubkey, &pubkeylen, 
+                &privkey, &privkeylen, &temp_state))
         return NULL;
 
-    if (pubkeylen < 1)
+    if ( (pubkeylen < 1) || (privkeylen < 1) )
         return NULL;
+
 
     pubkey = (char *)(malloc(sizeof(char) * pubkeylen + 1));
     memcpy(pubkey, temp_pubkey, pubkeylen + 1);
