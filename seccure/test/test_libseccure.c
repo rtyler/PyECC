@@ -26,9 +26,14 @@
 
 #include "libseccure.h"
 
+
+/*
+ * These values are built by running the seccure binary and 
+ * assume the curve of DEFAULT_CURVE (currently p384)
+ */
 #define DEFAULT_DATA "This message will be signed\n"
-#define DEFAULT_SIG "$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq"
-#define DEFAULT_PUBKEY "8W;>i^H0qi|J&$coR5MFpR*Vn"
+#define DEFAULT_SIG "$=gXkAjkWjA*>FF*eW@xo6>=B:F3X24$M-L:Pg(5O1SE@zs[cskaTh1K?p+O1G=;L~@slSs{v^6[V9oW/HkzJ+OS]q5ml4=iV(+xR~7>rS+y/TpgL~f[&,c"
+#define DEFAULT_PUBKEY "$BWJ_^0>R8,U~/$DZs#@r|-gt}&5|h*U{J_L^lvWk&X-K;R{*&qR(z+zE/xC"
 #define DEFAULT_PRIVKEY "my private key"
 
 #define DEFAULT_PLAINTEXT "This is a very very secret message!\n"

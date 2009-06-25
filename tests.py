@@ -10,9 +10,13 @@ import unittest
 
 import pyecc
 
+#
+# These values are built by running the seccure binary 
+# and assume the curve of DEFAULT_CURVE (currently p384)
+#
 DEFAULT_DATA = 'This message will be signed\n'
-DEFAULT_SIG = '$HPI?t(I*1vAYsl$|%21WXND=6Br*[>k(OR9B!GOwHqL0s+3Uq'
-DEFAULT_PUBKEY = '8W;>i^H0qi|J&$coR5MFpR*Vn'
+DEFAULT_SIG = '$=gXkAjkWjA*>FF*eW@xo6>=B:F3X24$M-L:Pg(5O1SE@zs[cskaTh1K?p+O1G=;L~@slSs{v^6[V9oW/HkzJ+OS]q5ml4=iV(+xR~7>rS+y/TpgL~f[&,c'
+DEFAULT_PUBKEY = '$BWJ_^0>R8,U~/$DZs#@r|-gt}&5|h*U{J_L^lvWk&X-K;R{*&qR(z+zE/xC'
 DEFAULT_PRIVKEY = 'my private key'
 DEFAULT_PLAINTEXT = 'This is a very very secret message!\n'
 
@@ -71,7 +75,7 @@ class ECC_Decrypt_Tests(unittest.TestCase):
         self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
 
     def test_BasicDecrypt(self):
-        encrypted = "\x01\xabT\x8e\xeb\x8e\xbf\xd8\xf5\x0c\xfePp\xe5t\x9b[\xc1O\xa3\xef\x19U\xa0g\x8db\r\x81Pm\xdd\x85'7v\xc9\xaf\xb2\x96\xc0\x01b\x9dn\xdc\xe7)\x0c\xcb\x90O\xb7\xb9z\x9f\xf3\n\xf2\xc0\xc4l)\xf7\xc6\xcb\xb3"
+        encrypted = "\x01\xdb?\xb7|-\x93EF\x16\xa2~\x96\x04\x15\xbaA\xef\x81!\xe8\xaa\x85,\xc8\x13\x86\x8ao'\x98\xee\xa8\xa3\xe0\x07J=6G\xba\\\xf3\xce\xa3\x9e~\xf5\x9d0\xdb\x11}e\xf0\x82\xd0\x92\xfc$S\xd4\xad\xe6\xf0Y\x15\xfe\xadw_+\xff@\x1a \xba\x01N\x95\x9d\x08\xe4\xe1\xcbl\xc5=\xbb\x0e\xacQ\x1e\xd8Q"
         decrypted = self.ecc.decrypt(encrypted)
         assert decrypted  == DEFAULT_PLAINTEXT
         

@@ -32,7 +32,7 @@
 /**
  * Default curve to use when encrypting, etc
  */
-#define DEFAULT_CURVE "p160"
+#define DEFAULT_CURVE "p384"
 #define DEFAULT_MAC_LEN 10
 
 
