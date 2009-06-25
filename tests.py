@@ -54,11 +54,14 @@ class ECC_Sign_Tests(unittest.TestCase):
 class ECC_Encrypt_Tests(unittest.TestCase):
     def setUp(self):
         super(ECC_Encrypt_Tests, self).setUp()
-        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY)
 
     def test_BasicEncrypt(self):
         encrypted = self.ecc.encrypt(DEFAULT_PLAINTEXT)
         assert encrypted
+
+        # Resetup self.ecc with a private key so I can decrypt
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
         decrypted = self.ecc.decrypt(encrypted)
         assert decrypted == DEFAULT_PLAINTEXT
 

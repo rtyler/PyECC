@@ -145,11 +145,11 @@ static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs
     ECC_State state;
     unsigned int pubkeylen, privkeylen;
 
-    if (!PyArg_ParseTuple(args, "s#s#O", &temp_pubkey, &pubkeylen, 
+    if (!PyArg_ParseTuple(args, "s#z#O", &temp_pubkey, &pubkeylen, 
                 &privkey, &privkeylen, &temp_state))
         return NULL;
 
-    if ( (pubkeylen < 1) || (privkeylen < 1) )
+    if (pubkeylen < 1)
         return NULL;
 
 

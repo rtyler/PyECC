@@ -30,7 +30,6 @@ class ECC(object):
     def __init__(self, *args, **kwargs):
         self._private = kwargs.get('private')
         self._public = kwargs.get('public')
-        assert self._private and self._public
         self._state = _pyecc.new_state()
         self._kp = _pyecc.new_keypair(self._public, self._private, self._state)
 
