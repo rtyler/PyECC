@@ -274,6 +274,15 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	gcry_md_hd_t digest;
 	struct affine_point *R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 
+	if (!__verify_state(state)) {
+		__warning("Invalid state passed to ecc_decrypt()");
+		goto exit;
+	}
+	if (!__verify_keypair(keypair, true, false)) {
+		__warning("Invalid keypair passed to ecc_decrypt()");
+		goto exit;
+	}
+
 	/*
 	 * Take the first bits off buffer to get the curve info
 	 */
