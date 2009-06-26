@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <glib.h>
+#include <gcrypt.h>
 
 #include "libseccure.h"
 

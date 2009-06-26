@@ -55,7 +55,7 @@ const char compact_digits[COMPACT_DIGITS_COUNT] = {
 
 int get_serialization_len(const gcry_mpi_t x, enum disp_format df)
 {
-  int res;
+  int res = 0;
   switch(df) {
   case DF_BIN:
     res = (gcry_mpi_get_nbits(x) + 7) / 8;

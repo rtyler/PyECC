@@ -72,7 +72,7 @@ bool __verify_state(ECC_State state)
  */
 bool __init_ecc(ECC_State state)
 {
-	gcry_error_t err;
+	gcry_error_t err = 0;
 	
 	/* Make sure we don't accidentally double-init */
 	if (state->gcrypt_init)
@@ -445,7 +445,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	ECC_Data rc = NULL;
 	gcry_md_hd_t digest;
 	gcry_error_t err;
-	gcry_mpi_t signature;
+	gcry_mpi_t signature = NULL;
 	char *digest_buf, *serialized;
 
 	/* 

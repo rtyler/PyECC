@@ -103,7 +103,7 @@ int point_decompress(struct affine_point *p, const gcry_mpi_t x, int yflag,
 		     const struct domain_params *dp)
 {
   gcry_mpi_t h, y;
-  int res;
+  int res, rc;
   h = gcry_mpi_snew(0);
   y = gcry_mpi_snew(0);
   gcry_mpi_mulm(h, x, x, dp->m);
@@ -119,7 +119,7 @@ int point_decompress(struct affine_point *p, const gcry_mpi_t x, int yflag,
 	gcry_mpi_set(p->y, y);
       else
 	gcry_mpi_sub(p->y, dp->m, y);
-    int rc = point_on_curve(p, dp);
+    rc = point_on_curve(p, dp);
     assert(rc);
     }
   gcry_mpi_release(h);
@@ -356,6 +356,7 @@ struct affine_point pointmul(const struct affine_point *p,
   struct jacobian_point r = jacobian_new();
   struct affine_point R;
   int n = gcry_mpi_get_nbits(exp);
+  int rc = 0;
   while (n) {
     jacobian_double(&r, dp);
     if (gcry_mpi_test_bit(exp, --n))
@@ -363,7 +364,7 @@ struct affine_point pointmul(const struct affine_point *p,
   }
   R = jacobian_to_affine(&r, dp);
   jacobian_release(&r);
-  int rc = point_on_curve(&R, dp);
+  rc = point_on_curve(&R, dp);
   assert(rc);
   return R;
 }

@@ -21,6 +21,11 @@
 
 #include "_pyecc.h"
 
+/*
+ * Creating a function pointer type for casting
+ */
+typedef void (*fp)(void *);
+
 static char pyecc_doc[] = "\
 The _pyecc module provides underlying C hooks for the \
 \"pyecc\" module\n\n\
@@ -48,7 +53,7 @@ static PyObject *py_new_state(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     ECC_State state = ecc_new_state(NULL);
 
-    PyObject *rc = PyCObject_FromVoidPtr(state, _release_state);
+    PyObject *rc = PyCObject_FromVoidPtr(state, (fp)(_release_state));
     if (!PyCObject_Check(rc)) {
         if (state)
             ecc_free_state(state);
@@ -93,7 +98,7 @@ static char decrypt_doc[] = "\
 ";
 static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    PyObject *temp_state, *temp_keypair, *rc;
+    PyObject *temp_state, *temp_keypair;
     ECC_State state;
     ECC_KeyPair keypair;
     ECC_Data encrypted;
@@ -160,7 +165,7 @@ static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs
 
     ECC_KeyPair kp = ecc_new_keypair(pubkey, privkey, state);
 
-    PyObject *rc = PyCObject_FromVoidPtr(kp, _release_keypair);
+    PyObject *rc = PyCObject_FromVoidPtr(kp, (fp)(_release_keypair));
     if (!PyCObject_Check(rc)) {
         if (kp)
             _release_keypair(kp);
@@ -254,14 +259,14 @@ static PyObject *py_pubkeygen(PyObject *self, PyObject *args, PyObject *kwargs)
 
 
 static struct PyMethodDef _pyecc_methods[] = {
-    {"new_state", py_new_state, METH_NOARGS, new_state_doc},
-    {"new_keypair", py_new_keypair, METH_VARARGS, new_keypair_doc},
-    {"verify", py_verify, METH_VARARGS, verify_doc},
-    {"sign", py_sign, METH_VARARGS, sign_doc},
-    {"encrypt", py_encrypt, METH_VARARGS, encrypt_doc},
-    {"decrypt", py_decrypt, METH_VARARGS, decrypt_doc},
-    {"pubkey_gen", py_pubkeygen, METH_VARARGS, pubkeygen_doc},
-    {NULL, NULL, 0, NULL}
+    {"new_state", (PyCFunction)py_new_state, METH_NOARGS, new_state_doc},
+    {"new_keypair", (PyCFunction)py_new_keypair, METH_VARARGS, new_keypair_doc},
+    {"verify", (PyCFunction)py_verify, METH_VARARGS, verify_doc},
+    {"sign", (PyCFunction)py_sign, METH_VARARGS, sign_doc},
+    {"encrypt", (PyCFunction)py_encrypt, METH_VARARGS, encrypt_doc},
+    {"decrypt", (PyCFunction)py_decrypt, METH_VARARGS, decrypt_doc},
+    {"pubkey_gen", (PyCFunction)py_pubkeygen, METH_VARARGS, pubkeygen_doc},
+    {NULL}
 };
 
 PyMODINIT_FUNC init_pyecc(void)

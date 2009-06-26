@@ -13,7 +13,8 @@ base_modules = [
             '_pyecc.c',
             'py_objects.c',
         ],
-        libraries=['gcrypt'])
+        libraries=['gcrypt'],
+        extra_compile_args=['-Wall', '-Werror'])
 ]
 
 packages = ['pyecc']
