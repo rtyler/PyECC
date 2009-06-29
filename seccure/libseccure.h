@@ -33,8 +33,10 @@
  * Default curve to use when encrypting, etc
  */
 #define DEFAULT_CURVE "p384"
+
 #define DEFAULT_MAC_LEN 10
 
+#define SUPPORT_PASSPHRASE_KEYS false
 
 /**
  * ::ECC_KeyPair denotes a structure to hold the public/private
@@ -42,8 +44,7 @@
  */
 struct _ECC_KeyPair {
 	gcry_mpi_t priv;
-	void *pub;
-	unsigned int pub_len;
+	gcry_mpi_t pub;
 };
 typedef struct _ECC_KeyPair* ECC_KeyPair;
 

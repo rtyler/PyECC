@@ -53,7 +53,7 @@ bool __verify_keypair(ECC_KeyPair keypair, bool require_private, bool require_pu
 			return false;
 	}
 	if (require_public) {
-		if ( (keypair->pub == NULL) || (strlen(keypair->pub) == 0) )
+		if ( (keypair->pub == NULL) )
 			return false;
 	}
 	return true;
@@ -98,10 +98,12 @@ bool __init_ecc(ECC_State state)
 		if (gcry_err_code(err))
 			__gwarning("Cannot enable libgcrupt's secure random number generator", err);
 	}
+
 	gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
 	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 
 	state->gcrypt_init = true;
+
 	return true;
 }
 
