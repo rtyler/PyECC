@@ -364,16 +364,20 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 #endif
 }
 
-const char *ecc_private_to_str(ECC_KeyPair keypair)
+const char *ecc_key_to_str(gcry_mpi_t key)
 {
+	gcry_error_t err;
 	unsigned char *buf;
 	size_t written;
 
-	if (!__verify_keypair(keypair, true, false))
+	if (!key)
 		return NULL;
 
-	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, (gcry_mpi_t)(keypair->priv));
-
+	err = gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, key);
+	if (err) {
+		__gwarning("Failed to call gcry_mpi_aprint() in ecc_key_to_str()\n", err);
+		return NULL;
+	}
 	return (const char *)(buf);
 }
 
