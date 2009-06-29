@@ -98,6 +98,8 @@ bool __init_ecc(ECC_State state)
 		if (gcry_err_code(err))
 			__gwarning("Cannot enable libgcrupt's secure random number generator", err);
 	}
+	gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
+	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 
 	state->gcrypt_init = true;
 	return true;
