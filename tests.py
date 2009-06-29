@@ -20,15 +20,22 @@ DEFAULT_PUBKEY = '$BWJ_^0>R8,U~/$DZs#@r|-gt}&5|h*U{J_L^lvWk&X-K;R{*&qR(z+zE/xC'
 DEFAULT_PRIVKEY = 'my private key'
 DEFAULT_PLAINTEXT = 'This is a very very secret message!\n'
 
-class ECC_Pubkeygen_Tests(unittest.TestCase):
+class ECC_KeyGen_Tests(unittest.TestCase):
     def test_GenerateWithPrivkey(self):
         pubkey = pyecc.ECC.public_keygen(DEFAULT_PRIVKEY)
         assert pubkey == DEFAULT_PUBKEY, ('Mismatch', pubkey, DEFAULT_PUBKEY)
 
     def test_GenerateBoth(self):
         ecc = pyecc.ECC.generate()
-        print ecc._private
-        print ecc._public
+
+        encrypted = ecc.encrypt(DEFAULT_PLAINTEXT)
+        assert encrypted, ('Failed to encrypt?', encrypted, ecc)
+
+        decrypted = ecc.decrypt(encrypted)
+        assert decrypted, ('Failed to decrypt?', decrypted, ecc)
+        
+        assert decrypted == DEFAULT_PLAINTEXT, ('Decrypted wrong',
+            decrypted, DEFAULT_PLAINTEXT)
 
 class ECC_Verify_Tests(unittest.TestCase):
     def setUp(self):
