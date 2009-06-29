@@ -246,13 +246,54 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
 	ECC_KeyPair result = NULL;
 	struct affine_point ap;
+	gcry_error_t err;
+	gcry_sexp_t spec, keypair, list;
+	gcry_mpi_t pub_mpi, priv_mpi;
+	unsigned char *pubbuf;
+	size_t publen;
+
 	if (priv == NULL) {
 		/*
 		 * We should use a NULL private key as a signal to use
 		 * /dev/urandom or something with sufficient entropy
 		 * to generate our own private key
 		 */
-		return NULL;
+		/*
+		 * Bits
+		 * 192, 224, 256, 384, 521 
+		 */
+		err = gcry_sexp_build(&spec, NULL, "(genkey (ECDSA (nbits %d)))", 256);
+		if (err) {
+			__gwarning("gcry_sexp_new() failed to generate an S-expr", err);
+			return NULL;
+		}
+
+		err = gcry_pk_genkey(&keypair, spec);
+		if (err) {
+			__gwarning("gcry_pk_genkey() failed", err);
+			return NULL;
+		}
+
+		list = gcry_sexp_find_token(keypair, "q", 1);
+		pub_mpi = gcry_sexp_nth_mpi(list, 1, GCRYMPI_FMT_USG);
+		gcry_sexp_release(list);
+
+		list = gcry_sexp_find_token(keypair, "d", 1);
+		priv_mpi = gcry_sexp_nth_mpi(list, 1, GCRYMPI_FMT_USG);
+
+		gcry_sexp_release(list);
+		gcry_sexp_release(keypair);
+		gcry_sexp_release(spec);
+
+		result = ecc_new_keypair(NULL, NULL, state);
+
+		gcry_mpi_aprint(GCRYMPI_FMT_HEX, &pubbuf, &publen, pub_mpi);
+		result->pub = pubbuf;
+		result->pub_len = (unsigned int)(publen);
+
+		result->priv = priv_mpi;
+
+		return result;
 	}
 
 	result = ecc_new_keypair(NULL, priv, state);
