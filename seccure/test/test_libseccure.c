@@ -255,38 +255,38 @@ int main(int argc, char **argv)
 	/*
 	 * Basic data structures tests
 	 */
-	g_test_add_func("/libecc/struct/ecc_new_keypair", __test_new_keypair);
-	g_test_add_func("/libecc/struct/ecc_new_data", __test_new_data);
-	g_test_add_func("/libecc/struct/ecc_new_options", __test_new_options);
-	g_test_add_func("/libecc/struct/ecc_new_state", __test_new_state);
+	g_test_add_func("/libseccure/struct/ecc_new_keypair", __test_new_keypair);
+	g_test_add_func("/libseccure/struct/ecc_new_data", __test_new_data);
+	g_test_add_func("/libseccure/struct/ecc_new_options", __test_new_options);
+	g_test_add_func("/libseccure/struct/ecc_new_state", __test_new_state);
 
 	/*
 	 * Tests for ecc_keygen()
 	 */
-	g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
-	g_test_add_func("/libecc/ecc_keygen/full", __test_full_keygen);
+	g_test_add_func("/libseccure/ecc_keygen/default", __test_keygen);
+	g_test_add_func("/libseccure/ecc_keygen/full", __test_full_keygen);
 
 
 	/*
 	 * Tests for ecc_verify()
 	 */
-	g_test_add_func("/libecc/ecc_verify/default", __test_verify);
-	g_test_add_func("/libecc/ecc_verify/null_keypair", __test_verify_nullkp);
-	g_test_add_func("/libecc/ecc_verify/null_data", __test_verify_nulldata);
-	g_test_add_func("/libecc/ecc_verify/null_sig", __test_verify_nullsig);
-	g_test_add_func("/libecc/ecc_verify/crap_sig", __test_verify_crapsig);
+	g_test_add_func("/libseccure/ecc_verify/default", __test_verify);
+	g_test_add_func("/libseccure/ecc_verify/null_keypair", __test_verify_nullkp);
+	g_test_add_func("/libseccure/ecc_verify/null_data", __test_verify_nulldata);
+	g_test_add_func("/libseccure/ecc_verify/null_sig", __test_verify_nullsig);
+	g_test_add_func("/libseccure/ecc_verify/crap_sig", __test_verify_crapsig);
 
 	/* 
 	 * Tests for ecc_sign()
 	 */
-	g_test_add_func("/libecc/ecc_sign/default", __test_sign);
-	g_test_add_func("/libecc/ecc_sign/null_data", __test_sign_nulldata);
-	g_test_add_func("/libecc/ecc_sign/null_keypair", __test_sign_nullkp);
+	g_test_add_func("/libseccure/ecc_sign/default", __test_sign);
+	g_test_add_func("/libseccure/ecc_sign/null_data", __test_sign_nulldata);
+	g_test_add_func("/libseccure/ecc_sign/null_keypair", __test_sign_nullkp);
 
 	/*
 	 * Tests for ecc_encrypt()
 	 */
-	g_test_add_func("/libecc/ecc_encrypt/default", __test_encrypt);
+	g_test_add_func("/libseccure/ecc_encrypt/default", __test_encrypt);
 
 
 	return g_test_run();
