@@ -17,13 +17,16 @@ SIGCURVE = "p256"
 MACLEN = "64"
 
 
-default: encdec-test signveri-test signcrypt-test test_libseccure
+default: encdec-test signveri-test signcrypt-test test_libseccure test_gcrypt
 
 test_libseccure: 
 	$(CC) $(CFLAGS) $(LDFLAGS) test_libseccure.c -o test_libseccure
 
+test_gcrypt:
+	$(CC) $(CFLAGS) $(LDFLAGS) test_gcrypt.c -o test_gcrypt
+
 clean:
-	rm -f test_libseccure public-encryption-key public-signature-key message.enc message.aux message.sig
+	rm -f test_libseccure test_gcrypt public-encryption-key public-signature-key message.enc message.aux message.sig
 
 rebuild: clean default
 
