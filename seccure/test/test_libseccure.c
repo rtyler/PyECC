@@ -195,6 +195,22 @@ void __test_keygen()
 	ecc_free_state(state);
 }
 
+/**
+ * __test_full_keygen should test the case where we
+ * rely on libseccure to generate both the private and
+ * the public keys
+ */
+void __test_full_keygen()
+{
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair result = ecc_keygen(NULL, state);
+
+	g_assert(result != NULL);
+	g_assert(result->pub != NULL);
+	g_assert(result->priv != NULL);
+	ecc_free_state(state);
+}
+
 
 /**
  * __test_encrypt should test the basic encryption
@@ -239,6 +255,7 @@ int main(int argc, char **argv)
 	 * Tests for ecc_keygen()
 	 */
 	g_test_add_func("/libecc/ecc_keygen/default", __test_keygen);
+	g_test_add_func("/libecc/ecc_keygen/full", __test_full_keygen);
 
 
 	/*
