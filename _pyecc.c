@@ -257,6 +257,33 @@ static PyObject *py_pubkeygen(PyObject *self, PyObject *args, PyObject *kwargs)
     return pubkey;
 }
 
+static PyObject *py_keygen(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    ECC_State state;
+    ECC_KeyPair keypair;
+    PyObject *rc;
+
+    state = ecc_new_state(NULL);
+    if (!state)
+        Py_RETURN_NONE;
+
+    keypair = ecc_keygen(NULL, state);
+    if (!keypair) {
+        ecc_free_state(state);
+        Py_RETURN_NONE;
+    }
+
+    rc = PyTuple_New(3);
+    
+    PyTuple_SetItem(rc, 0, PyString_FromString((const char *)(keypair->pub)));
+    PyTuple_SetItem(rc, 1, PyString_FromString(ecc_private_to_str(keypair)));
+    PyTuple_SetItem(rc, 2, PyCObject_FromVoidPtr((void *)(keypair), (fp)_release_keypair));
+
+    ecc_free_state(state);
+
+    return rc;
+}
+
 
 static struct PyMethodDef _pyecc_methods[] = {
     {"new_state", (PyCFunction)py_new_state, METH_NOARGS, new_state_doc},
@@ -266,6 +293,7 @@ static struct PyMethodDef _pyecc_methods[] = {
     {"encrypt", (PyCFunction)py_encrypt, METH_VARARGS, encrypt_doc},
     {"decrypt", (PyCFunction)py_decrypt, METH_VARARGS, decrypt_doc},
     {"pubkey_gen", (PyCFunction)py_pubkeygen, METH_VARARGS, pubkeygen_doc},
+    {"keygen", (PyCFunction)(py_keygen), METH_NOARGS, NULL},
     {NULL}
 };
 
