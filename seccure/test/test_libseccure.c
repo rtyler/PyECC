@@ -208,6 +208,15 @@ void __test_full_keygen()
 	g_assert(result != NULL);
 	g_assert(result->pub != NULL);
 	g_assert(result->priv != NULL);
+
+	unsigned char *buf;
+	size_t written;
+
+	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, (gcry_mpi_t)(result->priv));
+	fprintf(stderr, "PRIVATE: %s\n", buf);
+
+	free(buf);
+
 	ecc_free_state(state);
 }
 

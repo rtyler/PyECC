@@ -292,11 +292,11 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		result->pub_len = (unsigned int)(publen);
 
 		result->priv = priv_mpi;
-
-		return result;
+	}
+	else {
+		result = ecc_new_keypair(NULL, priv, state);
 	}
 
-	result = ecc_new_keypair(NULL, priv, state);
 	result->pub = (char *)(malloc(sizeof(char) * 
 			(state->curveparams->pk_len_compact + 1)));
 
