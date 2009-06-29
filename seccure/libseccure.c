@@ -254,15 +254,14 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 
 	if (priv == NULL) {
 		/*
-		 * We should use a NULL private key as a signal to use
-		 * /dev/urandom or something with sufficient entropy
-		 * to generate our own private key
+		 * Falling back to libgcrypt's builtin support for ECC key 
+		 * generation to provide us with a private key
 		 */
 		/*
-		 * Bits
+		 * Bits map to curves
 		 * 192, 224, 256, 384, 521 
 		 */
-		err = gcry_sexp_build(&spec, NULL, "(genkey (ECDSA (nbits %d)))", 256);
+		err = gcry_sexp_build(&spec, NULL, "(genkey (ECDSA (nbits %d)))", 384);
 		if (err) {
 			__gwarning("gcry_sexp_new() failed to generate an S-expr", err);
 			return NULL;
@@ -292,11 +291,10 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		result->pub_len = (unsigned int)(publen);
 
 		result->priv = priv_mpi;
-	}
-	else {
-		result = ecc_new_keypair(NULL, priv, state);
+		return result;
 	}
 
+	result = ecc_new_keypair(NULL, priv, state);
 	result->pub = (char *)(malloc(sizeof(char) * 
 			(state->curveparams->pk_len_compact + 1)));
 
@@ -306,6 +304,19 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	point_release(&ap);
 
 	return result;
+}
+
+const char *ecc_private_to_str(ECC_KeyPair keypair)
+{
+	unsigned char *buf;
+	size_t written;
+
+	if (!__verify_keypair(keypair, true, false))
+		return NULL;
+
+	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, (gcry_mpi_t)(keypair->priv));
+
+	return (const char *)(buf);
 }
 
 ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)

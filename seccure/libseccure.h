@@ -127,6 +127,17 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state);
 
 
 /**
+ * Return an allocated buffer with a GCRYMPI_FMT_HEX formatted 
+ * string of the private key MPI
+ *
+ * Note: You are responsible for free()'ing the buffer!
+ *
+ * @return Allocated string
+ */
+const char *ecc_private_to_str(ECC_KeyPair keypair);
+
+
+/**
  * Encrypt the specified block of data using the public key specified
  *
  * @return An allocated buffer with the encrypted data 

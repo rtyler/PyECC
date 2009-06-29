@@ -213,7 +213,9 @@ void __test_full_keygen()
 	size_t written;
 
 	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, (gcry_mpi_t)(result->priv));
-	fprintf(stderr, "PRIVATE: %s\n", buf);
+	/*
+	 * fprintf(stderr, "PRIVATE: %s\n", buf);
+	 */
 
 	free(buf);
 
