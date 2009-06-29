@@ -181,37 +181,79 @@ void ecc_free_keypair(ECC_KeyPair kp)
 
 ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state)
 {
+	unsigned int publen = 0;
+	unsigned int privlen = 0;
+	if (pubkey)
+		publen = strlen((const char *)(pubkey));
+	if (privkey)
+		privlen = strlen((const char *)(privkey));
+
+	return ecc_new_keypair_s(pubkey, publen, privkey, privlen, state);
+}
+
+ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen, 
+		char *privkey, unsigned int privkeylen, ECC_State state)
+{
 	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
+	size_t scanned = 0;
+	gcry_error_t err;
 
 	kp->pub = NULL;
 	kp->priv = NULL;
-	kp->pub_len = 0;
 
 	if (pubkey != NULL) {
-		kp->pub = pubkey;
-		kp->pub_len = (unsigned int)(strlen(pubkey));
+		if (!SUPPORT_PASSPHRASE_KEYS) {
+			/*
+			 * FIXME: Need to hash_to_exponent() here most likely 
+			 */
+			abort();
+		}
+		else {
+			scanned = 0;
+			err = gcry_mpi_scan(&kp->pub, GCRYMPI_FMT_HEX, (const void *)(pubkey), 
+					(size_t)(pubkeylen), &scanned);
+			
+			if (err) {
+				__gwarning("Failed to process private key\n", err);
+				ecc_free_keypair(kp);
+				return NULL;
+			}
+		}
 	}
 
 	if (privkey != NULL) {
-		gcry_error_t err;
-		gcry_md_hd_t container;
-		gcry_mpi_t privkey_hash;
-		char *privkey_secure = NULL;
+		if (!SUPPORT_PASSPHRASE_KEYS) {
+			gcry_md_hd_t container;
+			gcry_mpi_t privkey_hash;
+			char *privkey_secure = NULL;
 
-		err = gcry_md_open(&container, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
-		if (gcry_err_code(err)) {
-			__gwarning("Could not initialize SHA-256 digest for the private key", err);
-			free(kp);
-			return NULL;
+			err = gcry_md_open(&container, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
+			if (gcry_err_code(err)) {
+				__gwarning("Could not initialize SHA-256 digest for the private key", err);
+				free(kp);
+				return NULL;
+			}
+			gcry_md_write(container, privkey, strlen(privkey));
+			gcry_md_final(container);
+			privkey_secure = (char *)(gcry_md_read(container, 0));
+
+			privkey_hash = hash_to_exponent(privkey_secure, state->curveparams);
+			gcry_md_close(container);
+
+			kp->priv = privkey_hash;
 		}
-		gcry_md_write(container, privkey, strlen(privkey));
-		gcry_md_final(container);
-		privkey_secure = (char *)(gcry_md_read(container, 0));
-
-		privkey_hash = hash_to_exponent(privkey_secure, state->curveparams);
-		gcry_md_close(container);
-
-		kp->priv = privkey_hash;
+		else { 
+			scanned = 0;
+			err = gcry_mpi_scan(&kp->priv, GCRYMPI_FMT_HEX, (const void *)(privkey), 
+					(size_t)(privkeylen), &scanned);
+			
+			if (err) {
+				__gwarning("Failed to process private key\n", err);
+				ecc_free_keypair(kp);
+				return NULL;
+			}
+			
+		}
 	}
 
 	return kp;
@@ -247,12 +289,9 @@ ECC_Options ecc_new_options()
 ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
 	ECC_KeyPair result = NULL;
-	struct affine_point ap;
 	gcry_error_t err;
 	gcry_sexp_t spec, keypair, list;
 	gcry_mpi_t pub_mpi, priv_mpi;
-	unsigned char *pubbuf;
-	size_t publen;
 
 	if (priv == NULL) {
 		/*
@@ -288,14 +327,30 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 
 		result = ecc_new_keypair(NULL, NULL, state);
 
-		gcry_mpi_aprint(GCRYMPI_FMT_HEX, &pubbuf, &publen, pub_mpi);
-		result->pub = pubbuf;
-		result->pub_len = (unsigned int)(publen);
-
+		result->pub = pub_mpi;
 		result->priv = priv_mpi;
+
 		return result;
+		/*
+		 * TODO: Accomodate seccure's custom representation of passphrase-bassed
+		 * keys as well as libgcrypt's generated keys
+		 *
+		result->pub = (char *)(malloc(sizeof(char) * 
+			(state->curveparams->pk_len_compact + 1)));
+		result->pub_len = state->curveparams->pk_len_compact;
+
+		serialize_mpi((char *)(result->pub), result->pub_len, DF_COMPACT, pub_mpi);
+		 */
+	}
+	return NULL;
+
+#if 0
+	if (SUPPORT_PASSPHRASE_KEYS == false) {
+		fprintf(stderr, "Support for passphrase-based keys is currently disabled\n");
+		return NULL;
 	}
 
+	struct affine_point ap;
 	result = ecc_new_keypair(NULL, priv, state);
 	result->pub = (char *)(malloc(sizeof(char) * 
 			(state->curveparams->pk_len_compact + 1)));
@@ -306,6 +361,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	point_release(&ap);
 
 	return result;
+#endif
 }
 
 const char *ecc_private_to_str(ECC_KeyPair keypair)
@@ -424,11 +480,6 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	readbuf = (char *)(malloc(sizeof(char) * state->curveparams->pk_len_bin));
 	P = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 	R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
-
-	if (!decompress_from_string(P, keypair->pub, DF_COMPACT, state->curveparams)) {
-		__warning("Failed to decompress_from_string() in ecc_encrypt()");
-		goto exit;
-	}
 
 	/* Why only 64? */
 	if (!(keybuf = gcry_malloc_secure(64))) { 
@@ -564,7 +615,6 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 		return rc;
 }
 
-
 bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State state)
 {
 	bool rc = false;
@@ -586,18 +636,14 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 		__warning("Invalid or empty `signature` argument passed to ecc_verify()");
 		goto exit;
 	}
-	if ( (keypair == NULL) || (keypair->pub == NULL) ) {
+
+	if (!__verify_keypair(keypair, false, true)) {
 		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		goto exit;
 	}
-	if ( (state == NULL) || (!state->gcrypt_init) ) {
+	if (!__verify_state(state)) {
 		__warning("Invalid or uninitialized ECC_State object");
 		goto exit;
-	}
-
-	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, state->curveparams)) {
-		__warning("Invalid public key");
-		goto bailout;
 	}
 
 	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);

@@ -79,9 +79,22 @@ typedef struct _ECC_State* ECC_State;
 
 
 /**
- * Allocate an empty ::ECC_KeyPair
+ * Allocate an empty ::ECC_KeyPair 
+ *
+ * The privkey and pubkey arguments will be converted into an internal ::gcry_mpi_t 
+ * representation along the way, calling strlen() on both of them.
+ *
+ * If you do not want strlen() to be called, use ecc_new_keypair_s() and 
+ * specify a custom length for the respective keys
  */
 ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state);
+
+/**
+ * Allocate an empty ::ECC_KeyPair but allow the specification of the lengths
+ * of the respective keys 
+ */
+ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen, char *privkey, 
+	unsigned int privkeylen, ECC_State state);
 /**
  * Free and release an ::ECC_KeyPair
  */

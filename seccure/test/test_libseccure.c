@@ -209,15 +209,15 @@ void __test_full_keygen()
 	g_assert(result->pub != NULL);
 	g_assert(result->priv != NULL);
 
+	/*
 	unsigned char *buf;
 	size_t written;
 
 	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, (gcry_mpi_t)(result->priv));
-	/*
-	 * fprintf(stderr, "PRIVATE: %s\n", buf);
-	 */
+	fprintf(stderr, "PRIVATE: %s\n", buf);
 
 	free(buf);
+	 */
 
 	ecc_free_state(state);
 }
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
 	/*
 	 * Tests for ecc_keygen()
 	 */
-	g_test_add_func("/libseccure/ecc_keygen/default", __test_keygen);
+	//g_test_add_func("/libseccure/ecc_keygen/default", __test_keygen);
 	g_test_add_func("/libseccure/ecc_keygen/full", __test_full_keygen);
 
 
