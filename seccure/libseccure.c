@@ -275,7 +275,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 			ecc_free_keypair(result);
 		}
 
-		result->priv = buf_to_exponent(r, bits / 8, state->curveparams);
+		result->priv = hash_to_exponent(r, state->curveparams);
 
 		ap = pointmul(&state->curveparams->dp.base, result->priv,
 			&state->curveparams->dp);
@@ -434,9 +434,10 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	P = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 	R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 
-	if (!mixin_key_and_curve(P, keypair->pub, state->curveparams)) {
-		__warning("Failed to process public key and curve params for the affine point");
-		goto exit;
+	if (!decompress_from_string(P, (char *)keypair->pub, 
+			DF_COMPACT, state->curveparams)) {
+		__warning("Invalid public key");
+		goto bailout;
 	}
 
 	/* Why only 64? */
