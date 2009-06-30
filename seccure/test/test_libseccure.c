@@ -33,7 +33,7 @@
  * assume the curve of DEFAULT_CURVE (currently p384)
  */
 #define DEFAULT_DATA "This message will be signed\n"
-#define DEFAULT_SIG "$=gXkAjkWjA*>FF*eW@xo6>=B:F3X24$M-L:Pg(5O1SE@zs[cskaTh1K?p+O1G=;L~@slSs{v^6[V9oW/HkzJ+OS]q5ml4=iV(+xR~7>rS+y/TpgL~f[&,c"
+#define DEFAULT_SIG "#ULQ+CXQ7X1tuhV[~QDVUi=QDqHz=/jLE,%(Q*lkVL#gvmnTfPWmm$&lBPOV!RLWH8>}l#6Bmyyw1Tn=)>A*vmXnR~8:Luu%3zwm%I<U+z|Z+Y(3$aT9N<["
 
 /*
  * private and public key generated with a 384 curve
