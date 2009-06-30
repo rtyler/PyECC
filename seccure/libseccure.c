@@ -193,26 +193,17 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 		char *privkey, unsigned int privkeylen, ECC_State state)
 {
 	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
-	size_t scanned = 0;
 	gcry_error_t err;
 
 	kp->pub = NULL;
 	kp->priv = NULL;
 
 	if (pubkey != NULL) {
-#ifdef SUPPORT_PASSPHRASE_KEYS
-		/*
-		 * FIXME: Need to hash_to_exponent() here most likely 
-		 */
-		abort();
-#else
 		kp->pub = pubkey;
 		kp->pub_bytes = pubkeylen;
 	}
-#endif
 
 	if (privkey != NULL) {
-#ifdef SUPPORT_PASSPHRASE_KEYS
 		gcry_md_hd_t container;
 		gcry_mpi_t privkey_hash;
 		char *privkey_secure = NULL;
@@ -231,18 +222,6 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 		gcry_md_close(container);
 
 		kp->priv = privkey_hash;
-#else
-		scanned = 0;
-		kp->priv = gcry_mpi_new(0);
-		err = gcry_mpi_scan(&kp->priv, GCRYMPI_FMT_USG, (const void *)(privkey), 
-				(size_t)(privkeylen), &scanned);
-		
-		if (err) {
-			__gwarning("Failed to process private key", err);
-			ecc_free_keypair(kp);
-			return NULL;
-		}
-#endif	
 	}
 
 	return kp;
