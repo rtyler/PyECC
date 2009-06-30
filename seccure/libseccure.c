@@ -517,7 +517,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	/* 
 	 * Preliminary argument checks, just for sanity of the library 
 	 */
-	if ( (data == NULL) || (strlen(data) == 0) ) {
+	if ( (data == NULL) ) {
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		goto exit;
 	}
