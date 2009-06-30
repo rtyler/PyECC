@@ -38,8 +38,8 @@
 /*
  * private and public key generated with a 384 curve
  */
-#define DEFAULT_PUBKEY "0118E76C9F04C96E6BFA233D700E8E438FBBC184CF52891042B3B039AD299FFBC4F6677A3C9C376FE3EE4E11D73D4A60ED"
-#define DEFAULT_PRIVKEY "00894DAEDB4C26264205B22161C7C15E893A532F4D2B5A50F8894017CD67A6EEB1FBBB6B01AD0E3BB6D9F37948C581D16B"
+#define DEFAULT_PUBKEY "!|-C}WNK/mm=mi+Z~0({CdDonE%;V_aBQv|gyJ4QKQRV*Om(jx%U{u+rFQ2x"
+#define DEFAULT_PRIVKEY "02AEE640252AFABE5DC5CF04CE06A659D22659F06BE9076EB3980683ED4E3A9036F9BDD0B816D8C3FA435D5BCBACF11C"
 
 #define DEFAULT_PLAINTEXT "This is a very very secret message!\n"
 
@@ -213,7 +213,7 @@ void __test_full_keygen()
 	g_assert(result->pub != NULL);
 	g_assert(result->priv != NULL);
 
-	fprintf(stderr, "pub %s\n", ecc_mpi_to_str(result->pub));
+	fprintf(stderr, "pub %s\n",  (char *)(result->pub));
 	fprintf(stderr, "priv %s\n", ecc_mpi_to_str(result->priv));
 
 	ecc_free_state(state);

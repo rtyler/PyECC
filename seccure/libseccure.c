@@ -206,16 +206,8 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 		 */
 		abort();
 #else
-		scanned = 0;
-		kp->pub = gcry_mpi_new(0);
-		err = gcry_mpi_scan(&kp->pub, GCRYMPI_FMT_USG, pubkey,
-				(size_t)(pubkeylen), &scanned);
-		
-		if (err) {
-			__gwarning("Failed to process public key", err);
-			ecc_free_keypair(kp);
-			return NULL;
-		}
+		kp->pub = pubkey;
+		kp->pub_bytes = pubkeylen;
 	}
 #endif
 
@@ -287,6 +279,8 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
 	ECC_KeyPair result = NULL;
 	struct affine_point ap;
+	char *r;
+	unsigned int bits;
 
 	if (priv == NULL) {
 		/*
@@ -294,26 +288,33 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		 * generation to provide us with a private key
 		 */
 		result = ecc_new_keypair(NULL, NULL, state);
-		result->priv = get_random_exponent(state->curveparams);
+		bits = gcry_mpi_get_nbits(state->curveparams->dp.order);
+		r = (char *)(malloc(bits));
+		gcry_randomize(r, bits / 8, GCRY_VERY_STRONG_RANDOM);
+		if (!r) {
+			__warning("Failed to generate a random buffer of N bytes");
+			ecc_free_keypair(result);
+		}
+
+		result->priv = buf_to_exponent(r, bits / 8, state->curveparams);
 
 		ap = pointmul(&state->curveparams->dp.base, result->priv,
 			&state->curveparams->dp);
 
-		/*
-		 * Borrow relevant pieces of compress_to_string() without
-		 * the unnecessary serialization bits
-		 */
-		if (!point_compress(&ap)) {
-			__warning("Failed to compress point in ecc_keygen()");
-			point_release(&ap);
-			ecc_free_keypair(result);
-			return NULL;
-		}
+		if (r)
+			free(r);
 
-		result->pub = gcry_mpi_snew(0);
-		gcry_mpi_add(result->pub, ap.x, state->curveparams->dp.m);
-		
+		/*
+		 * This makes me die inside
+		 */
+		r = malloc(sizeof(char) * (state->curveparams->pk_len_compact + 1));
+		compress_to_string((char *)(r), DF_COMPACT, &ap, state->curveparams);
 		point_release(&ap);
+
+		result->pub = r;
+		r[state->curveparams->pk_len_compact] = '\0';
+		result->pub_bytes = (unsigned int)(state->curveparams->pk_len_compact + 1);
+
 		return result;
 	}
 #ifdef SUPPORT_PASSPHRASE_KEYS
@@ -344,7 +345,7 @@ const char *ecc_mpi_to_str(gcry_mpi_t key)
 
 	err = gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, key);
 	if (err) {
-		__gwarning("Failed to call gcry_mpi_aprint() in ecc_key_to_str()\n", err);
+		__gwarning("Failed to call gcry_mpi_aprint() in ecc_key_to_str()", err);
 		return NULL;
 	}
 	return (const char *)(buf);

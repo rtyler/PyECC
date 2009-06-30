@@ -42,7 +42,8 @@
  */
 struct _ECC_KeyPair {
 	gcry_mpi_t priv;
-	gcry_mpi_t pub;
+	void *pub;
+	unsigned int pub_bytes;
 };
 typedef struct _ECC_KeyPair* ECC_KeyPair;
 
