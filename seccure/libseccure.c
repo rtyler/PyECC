@@ -261,56 +261,41 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	char *r;
 	unsigned int bits;
 
-	if (priv == NULL) {
-		/*
-		 * Falling back to libgcrypt's builtin support for ECC key 
-		 * generation to provide us with a private key
-		 */
-		result = ecc_new_keypair(NULL, NULL, state);
-		bits = gcry_mpi_get_nbits(state->curveparams->dp.order);
-		r = (char *)(malloc(bits));
-		gcry_randomize(r, bits / 8, GCRY_VERY_STRONG_RANDOM);
-		if (!r) {
-			__warning("Failed to generate a random buffer of N bytes");
-			ecc_free_keypair(result);
-		}
+	if (priv != NULL)
+		return NULL;
 
-		result->priv = hash_to_exponent(r, state->curveparams);
-
-		ap = pointmul(&state->curveparams->dp.base, result->priv,
-			&state->curveparams->dp);
-
-		if (r)
-			free(r);
-
-		/*
-		 * This makes me die inside
-		 */
-		r = malloc(sizeof(char) * (state->curveparams->pk_len_compact + 1));
-		compress_to_string((char *)(r), DF_COMPACT, &ap, state->curveparams);
-		point_release(&ap);
-
-		result->pub = r;
-		r[state->curveparams->pk_len_compact] = '\0';
-		result->pub_bytes = (unsigned int)(state->curveparams->pk_len_compact + 1);
-
-		return result;
+	/* 
+	 * Generate our own private key via /dev/urandom
+	 */
+	bits = gcry_mpi_get_nbits(state->curveparams->dp.order);
+	r = (char *)(malloc(bits));
+	gcry_randomize(r, bits / 8, GCRY_VERY_STRONG_RANDOM);
+	if (!r) {
+		__warning("Failed to generate a random buffer of N bytes");
+		ecc_free_keypair(result);
 	}
-#ifdef SUPPORT_PASSPHRASE_KEYS
-	struct affine_point ap;
-	result = ecc_new_keypair(NULL, priv, state);
-	result->pub = (char *)(malloc(sizeof(char) * 
-			(state->curveparams->pk_len_compact + 1)));
+	result = ecc_new_keypair(NULL, r, state);
+
+	if (r)
+		free(r);
+
+	/*
+	 * This makes me die inside
+	 */
+	r = malloc(sizeof(char) * (state->curveparams->pk_len_compact + 1));
 
 	ap = pointmul(&state->curveparams->dp.base, result->priv,
-			&state->curveparams->dp);
-	compress_to_string(result->pub, DF_COMPACT, &ap, state->curveparams);
+		&state->curveparams->dp);
+
+	compress_to_string((char *)(r), DF_COMPACT, &ap, state->curveparams);
+
 	point_release(&ap);
 
+	result->pub = r;
+	r[state->curveparams->pk_len_compact] = '\0';
+	result->pub_bytes = (unsigned int)(state->curveparams->pk_len_compact + 1);
+
 	return result;
-#else 
-	return NULL;
-#endif
 }
 
 const char *ecc_mpi_to_str(gcry_mpi_t key)
