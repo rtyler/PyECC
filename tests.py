@@ -27,6 +27,7 @@ class ECC_KeyGen_Tests(unittest.TestCase):
 
     def test_GenerateBoth(self):
         ecc = pyecc.ECC.generate()
+        print ('private', ecc._private)
 
         encrypted = ecc.encrypt(DEFAULT_PLAINTEXT)
         assert encrypted, ('Failed to encrypt?', encrypted, ecc)
