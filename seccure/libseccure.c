@@ -170,12 +170,10 @@ void ecc_free_keypair(ECC_KeyPair kp)
 	if (kp == NULL)
 		return;
 	
-	if (kp->priv) {
+	if (kp->priv)
 		gcry_mpi_release(kp->priv);
-	}
-	if (kp->pub) {
-		free(kp->pub);
-	}
+	if (kp->pub)
+		gcry_mpi_release(kp->pub);
 	free(kp);
 }
 
@@ -202,58 +200,57 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 	kp->priv = NULL;
 
 	if (pubkey != NULL) {
-		if (!SUPPORT_PASSPHRASE_KEYS) {
-			/*
-			 * FIXME: Need to hash_to_exponent() here most likely 
-			 */
-			abort();
-		}
-		else {
-			scanned = 0;
-			err = gcry_mpi_scan(&kp->pub, GCRYMPI_FMT_HEX, (const void *)(pubkey), 
-					(size_t)(pubkeylen), &scanned);
-			
-			if (err) {
-				__gwarning("Failed to process private key\n", err);
-				ecc_free_keypair(kp);
-				return NULL;
-			}
+#ifdef SUPPORT_PASSPHRASE_KEYS
+		/*
+		 * FIXME: Need to hash_to_exponent() here most likely 
+		 */
+		abort();
+#else
+		scanned = 0;
+		kp->pub = gcry_mpi_new(0);
+		err = gcry_mpi_scan(&kp->pub, GCRYMPI_FMT_USG, pubkey,
+				(size_t)(pubkeylen), &scanned);
+		
+		if (err) {
+			__gwarning("Failed to process public key", err);
+			ecc_free_keypair(kp);
+			return NULL;
 		}
 	}
+#endif
 
 	if (privkey != NULL) {
-		if (!SUPPORT_PASSPHRASE_KEYS) {
-			gcry_md_hd_t container;
-			gcry_mpi_t privkey_hash;
-			char *privkey_secure = NULL;
+#ifdef SUPPORT_PASSPHRASE_KEYS
+		gcry_md_hd_t container;
+		gcry_mpi_t privkey_hash;
+		char *privkey_secure = NULL;
 
-			err = gcry_md_open(&container, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
-			if (gcry_err_code(err)) {
-				__gwarning("Could not initialize SHA-256 digest for the private key", err);
-				free(kp);
-				return NULL;
-			}
-			gcry_md_write(container, privkey, strlen(privkey));
-			gcry_md_final(container);
-			privkey_secure = (char *)(gcry_md_read(container, 0));
-
-			privkey_hash = hash_to_exponent(privkey_secure, state->curveparams);
-			gcry_md_close(container);
-
-			kp->priv = privkey_hash;
+		err = gcry_md_open(&container, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
+		if (gcry_err_code(err)) {
+			__gwarning("Could not initialize SHA-256 digest for the private key", err);
+			free(kp);
+			return NULL;
 		}
-		else { 
-			scanned = 0;
-			err = gcry_mpi_scan(&kp->priv, GCRYMPI_FMT_HEX, (const void *)(privkey), 
-					(size_t)(privkeylen), &scanned);
-			
-			if (err) {
-				__gwarning("Failed to process private key\n", err);
-				ecc_free_keypair(kp);
-				return NULL;
-			}
-			
+		gcry_md_write(container, privkey, strlen(privkey));
+		gcry_md_final(container);
+		privkey_secure = (char *)(gcry_md_read(container, 0));
+
+		privkey_hash = hash_to_exponent(privkey_secure, state->curveparams);
+		gcry_md_close(container);
+
+		kp->priv = privkey_hash;
+#else
+		scanned = 0;
+		kp->priv = gcry_mpi_new(0);
+		err = gcry_mpi_scan(&kp->priv, GCRYMPI_FMT_USG, (const void *)(privkey), 
+				(size_t)(privkeylen), &scanned);
+		
+		if (err) {
+			__gwarning("Failed to process private key", err);
+			ecc_free_keypair(kp);
+			return NULL;
 		}
+#endif	
 	}
 
 	return kp;
@@ -342,14 +339,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		serialize_mpi((char *)(result->pub), result->pub_len, DF_COMPACT, pub_mpi);
 		 */
 	}
-	return NULL;
-
-#if 0
-	if (SUPPORT_PASSPHRASE_KEYS == false) {
-		fprintf(stderr, "Support for passphrase-based keys is currently disabled\n");
-		return NULL;
-	}
-
+#ifdef SUPPORT_PASSPHRASE_KEYS
 	struct affine_point ap;
 	result = ecc_new_keypair(NULL, priv, state);
 	result->pub = (char *)(malloc(sizeof(char) * 
@@ -361,6 +351,8 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	point_release(&ap);
 
 	return result;
+#else 
+	return NULL;
 #endif
 }
 

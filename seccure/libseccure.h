@@ -36,8 +36,6 @@
 
 #define DEFAULT_MAC_LEN 10
 
-#define SUPPORT_PASSPHRASE_KEYS false
-
 /**
  * ::ECC_KeyPair denotes a structure to hold the public/private
  * keys necessary for ECC sign/verify/encrypt and decrypting.

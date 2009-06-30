@@ -34,8 +34,12 @@
  */
 #define DEFAULT_DATA "This message will be signed\n"
 #define DEFAULT_SIG "$=gXkAjkWjA*>FF*eW@xo6>=B:F3X24$M-L:Pg(5O1SE@zs[cskaTh1K?p+O1G=;L~@slSs{v^6[V9oW/HkzJ+OS]q5ml4=iV(+xR~7>rS+y/TpgL~f[&,c"
-#define DEFAULT_PUBKEY "$BWJ_^0>R8,U~/$DZs#@r|-gt}&5|h*U{J_L^lvWk&X-K;R{*&qR(z+zE/xC"
-#define DEFAULT_PRIVKEY "my private key"
+
+/*
+ * private and public key generated with a 384 curve
+ */
+#define DEFAULT_PUBKEY "04A174E7E9558D4BFCE9DC1BB8897B59F0703FAEF4074DB8A8A60F62D38F0F563B139BD83A3B58BAF8B44FA5DA2A58352F6C65590E13469BCDE220EBCC238D1B87D1FC557ECFDEBC6C6920B9C473948BDEC69F3A596DA2BF1EF17D9B9E153CDBE9"
+#define DEFAULT_PRIVKEY "00A286D7649B2A5AE383ECCE91DD180F3282C8BA0DC4C6AC269CFA912484C24C24DD3E4F06391D5D94756A48E512519B1B"
 
 #define DEFAULT_PLAINTEXT "This is a very very secret message!\n"
 
@@ -209,15 +213,8 @@ void __test_full_keygen()
 	g_assert(result->pub != NULL);
 	g_assert(result->priv != NULL);
 
-	/*
-	unsigned char *buf;
-	size_t written;
-
-	gcry_mpi_aprint(GCRYMPI_FMT_HEX, &buf, &written, (gcry_mpi_t)(result->priv));
-	fprintf(stderr, "PRIVATE: %s\n", buf);
-
-	free(buf);
-	 */
+	fprintf(stderr, "pub %s\n", ecc_mpi_to_str(result->pub));
+	fprintf(stderr, "priv %s\n", ecc_mpi_to_str(result->priv));
 
 	ecc_free_state(state);
 }
