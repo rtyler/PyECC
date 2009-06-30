@@ -140,13 +140,13 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state);
 
 /**
  * Return an allocated buffer with an GCRYMPI_FMT_HEX formatted
- * string representation of the specified key
+ * string representation of the specified mpi (key, etc)
  *
  * Note: You are responsible for free()'ing the buffer.
  *
  * @return Allocated string
  */
-const char *ecc_key_to_str(gcry_mpi_t key);
+const char *ecc_mpi_to_str(gcry_mpi_t key);
 
 
 /**

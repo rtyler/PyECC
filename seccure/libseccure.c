@@ -356,7 +356,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 #endif
 }
 
-const char *ecc_key_to_str(gcry_mpi_t key)
+const char *ecc_mpi_to_str(gcry_mpi_t key)
 {
 	gcry_error_t err;
 	unsigned char *buf;
