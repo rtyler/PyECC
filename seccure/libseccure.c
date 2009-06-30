@@ -548,10 +548,8 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	ECC_Data rc = NULL;
 	gcry_md_hd_t digest;
 	gcry_error_t err;
-	gcry_mpi_t sig_hex;
-	gcry_sexp_t sig, data_expr, key_expr, list;
-	char *digest_buf;
-	unsigned int diglen;
+	gcry_mpi_t signature = NULL;
+	char *digest_buf, *serialized;
 
 	/* 
 	 * Preliminary argument checks, just for sanity of the library 
@@ -561,7 +559,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 		goto exit;
 	}
 	if (!__verify_keypair(keypair, true, false)) {
-		__warning("Invalid ECC_KeyPair object passed to ecc_verify() (I need a private key here)");
+		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
 		goto exit;
 	}
 	if (!__verify_state(state)) {
@@ -572,9 +570,9 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	/*
 	 * Open up message digest for the signing
 	 */
-	err = gcry_md_open(&digest, GCRY_MD_SHA1, 0);
+	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);
 	if (gcry_err_code(err)) {
-		__gwarning("Failed to initialize SHA-1 message digest", err);
+		__gwarning("Failed to initialize SHA-512 message digest", err);
 		goto bailout;
 	}
 
@@ -584,51 +582,31 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	gcry_md_write(digest, data, strlen(data));
 	gcry_md_final(digest);
 	digest_buf = (char *)(gcry_md_read(digest, 0));
-	diglen = gcry_md_get_algo_dlen(GCRY_MD_SHA1);
-
-	fprintf(stderr, "digest_buf should be this long: %d\n", diglen);
 
 	if (digest_buf == NULL) {
 		__warning("Digest buffer was NULL");
 		goto bailout;
 	}
 
-	err = gcry_sexp_build(&key_expr, NULL, 
-			"(private-key (ecc (curve \"NIST P-384\") (q %m) (d %m)))", 
-				keypair->pub, keypair->priv);
-	if (err) {
-		__gwarning("Failed to create private key S-expr", err);
+	signature = ECDSA_sign(digest_buf, keypair->priv, state->curveparams);
+
+	if (signature == NULL) {
+		__warning("ECDSA_sign() returned a NULL signature");
 		goto bailout;
 	}
 
-	fprintf(stderr, "Padding needed (strlen = %d): %d\n", (int)strlen(digest_buf), (int)(strlen(digest_buf) % 8) );
+	rc = ecc_new_data();
+	serialized = (char *)(malloc(sizeof(char) * 
+			(1 + state->curveparams->sig_len_compact)));
 
-	err = gcry_sexp_build(&data_expr, NULL, 
-				"(data (flags pkcs1) (hash sha1 %b))", diglen, digest_buf);
-	gcry_md_close(digest);
-	if (err) {
-		__gwarning("Failed to build the S-expr for signing", err);
-		goto bailout;
-	}
-
-	err = gcry_pk_sign(&sig, data_expr, key_expr);
-	if (err) {
-		__gwarning("Failed to sign the data", err);
-		goto bailout;
-	}
-
-	list = gcry_sexp_find_token(sig, "s", 1);
-	if (!list) {
-		__warning("Failed to find the signature token in the S-expr");
-		goto bailout;
-	}
-
-	sig_hex = gcry_sexp_nth_mpi(list, 1, GCRYMPI_FMT_USG);
-	gcry_sexp_release(list);
-
-	return NULL;
+	serialize_mpi(serialized, state->curveparams->sig_len_compact, 
+			DF_COMPACT, signature);
+	serialized[state->curveparams->sig_len_compact] = '\0';
+	rc->data = serialized;
 	
 	bailout:
+		gcry_mpi_release(signature);
+		gcry_md_close(digest);
 	exit:
 		return rc;
 }
