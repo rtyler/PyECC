@@ -122,14 +122,21 @@ int decompress_from_string(struct affine_point *P, const char *buf,
   int res;
   assert(! (df == DF_COMPACT && strlen(buf) != inlen));
   if ((res = deserialize_mpi(&x, df, buf, inlen))) {
-    int yflag;
-    if ((yflag = (gcry_mpi_cmp(x, cp->dp.m) >= 0)))
-      gcry_mpi_sub(x, x, cp->dp.m);
-    res = gcry_mpi_cmp_ui(x, 0) >= 0 && gcry_mpi_cmp(x, cp->dp.m) < 0 &&
-      point_decompress(P, x, yflag, &cp->dp);
-    gcry_mpi_release(x);
+	res = mixin_key_and_curve(P, x, cp);
   }
   return res;
+}
+
+int mixin_key_and_curve(struct affine_point *P, gcry_mpi_t pubkey, 
+	const struct curve_params *cp)
+{
+	int yflag, res;
+
+	if ((yflag = (gcry_mpi_cmp(pubkey, cp->dp.m) >= 0)))
+		gcry_mpi_sub(pubkey, pubkey, cp->dp.m);
+	res = gcry_mpi_cmp_ui(pubkey, 0) >= 0 && gcry_mpi_cmp(pubkey, cp->dp.m) < 0 &&
+			point_decompress(P, pubkey, yflag, &cp->dp);
+	return res;
 }
 
 /******************************************************************************/

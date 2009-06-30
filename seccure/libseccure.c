@@ -477,6 +477,11 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	P = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 	R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 
+	if (!mixin_key_and_curve(P, keypair->pub, state->curveparams)) {
+		__warning("Failed to process public key and curve params for the affine point");
+		goto exit;
+	}
+
 	/* Why only 64? */
 	if (!(keybuf = gcry_malloc_secure(64))) { 
 		__warning("Out of secure memory!");

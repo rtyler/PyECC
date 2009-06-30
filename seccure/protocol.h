@@ -51,6 +51,8 @@ void compress_to_string(char *buf, enum disp_format df,
 			const struct curve_params *cp);
 int decompress_from_string(struct affine_point *P, const char *buf, 
 			   enum disp_format df, const struct curve_params *cp);
+int mixin_key_and_curve(struct affine_point *P, gcry_mpi_t pubkey, 
+	const struct curve_params *cp);
 
 gcry_mpi_t ECDSA_sign(const char *msg, const gcry_mpi_t d, 
 		      const struct curve_params *cp);
