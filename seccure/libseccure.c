@@ -286,58 +286,35 @@ ECC_Options ecc_new_options()
 ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 {
 	ECC_KeyPair result = NULL;
-	gcry_error_t err;
-	gcry_sexp_t spec, keypair, list;
-	gcry_mpi_t pub_mpi, priv_mpi;
+	struct affine_point ap;
 
 	if (priv == NULL) {
 		/*
 		 * Falling back to libgcrypt's builtin support for ECC key 
 		 * generation to provide us with a private key
 		 */
-		/*
-		 * Bits map to curves
-		 * 192, 224, 256, 384, 521 
-		 */
-		err = gcry_sexp_build(&spec, NULL, "(genkey (ECDSA (nbits %d)))", 384);
-		if (err) {
-			__gwarning("gcry_sexp_new() failed to generate an S-expr", err);
-			return NULL;
-		}
-
-		err = gcry_pk_genkey(&keypair, spec);
-		if (err) {
-			__gwarning("gcry_pk_genkey() failed", err);
-			return NULL;
-		}
-
-		list = gcry_sexp_find_token(keypair, "q", 1);
-		pub_mpi = gcry_sexp_nth_mpi(list, 1, GCRYMPI_FMT_USG);
-		gcry_sexp_release(list);
-
-		list = gcry_sexp_find_token(keypair, "d", 1);
-		priv_mpi = gcry_sexp_nth_mpi(list, 1, GCRYMPI_FMT_USG);
-
-		gcry_sexp_release(list);
-		gcry_sexp_release(keypair);
-		gcry_sexp_release(spec);
-
 		result = ecc_new_keypair(NULL, NULL, state);
+		result->priv = get_random_exponent(state->curveparams);
 
-		result->pub = pub_mpi;
-		result->priv = priv_mpi;
+		ap = pointmul(&state->curveparams->dp.base, result->priv,
+			&state->curveparams->dp);
 
-		return result;
 		/*
-		 * TODO: Accomodate seccure's custom representation of passphrase-bassed
-		 * keys as well as libgcrypt's generated keys
-		 *
-		result->pub = (char *)(malloc(sizeof(char) * 
-			(state->curveparams->pk_len_compact + 1)));
-		result->pub_len = state->curveparams->pk_len_compact;
-
-		serialize_mpi((char *)(result->pub), result->pub_len, DF_COMPACT, pub_mpi);
+		 * Borrow relevant pieces of compress_to_string() without
+		 * the unnecessary serialization bits
 		 */
+		if (!point_compress(&ap)) {
+			__warning("Failed to compress point in ecc_keygen()");
+			point_release(&ap);
+			ecc_free_keypair(result);
+			return NULL;
+		}
+
+		result->pub = gcry_mpi_snew(0);
+		gcry_mpi_add(result->pub, ap.x, state->curveparams->dp.m);
+		
+		point_release(&ap);
+		return result;
 	}
 #ifdef SUPPORT_PASSPHRASE_KEYS
 	struct affine_point ap;
