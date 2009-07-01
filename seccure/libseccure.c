@@ -653,7 +653,8 @@ char *ecc_serialize_private_key(ECC_KeyPair kp, ECC_State state)
 
 	buf = (char *)malloc(sizeof(char) * 
 			(1 + state->curveparams->pk_len_compact));
-	serialize_mpi(buf, (1 + state->curveparams->pk_len_compact), 
+	serialize_mpi(buf, state->curveparams->pk_len_compact, 
 			DF_COMPACT, kp->priv);
+	buf[state->curveparams->pk_len_compact] = '\0';
 	return buf;
 }
