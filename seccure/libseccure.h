@@ -149,6 +149,8 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state);
  */
 const char *ecc_mpi_to_str(gcry_mpi_t key);
 
+char *ecc_serialize_private_key(ECC_KeyPair kp, ECC_State state);
+
 
 /**
  * Encrypt the specified block of data using the public key specified

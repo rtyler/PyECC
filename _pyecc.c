@@ -276,7 +276,7 @@ static PyObject *py_keygen(PyObject *self, PyObject *args, PyObject *kwargs)
     rc = PyTuple_New(3);
     
     PyTuple_SetItem(rc, 0, PyString_FromString((const char *)(keypair->pub)));
-    PyTuple_SetItem(rc, 1, PyString_FromString(ecc_mpi_to_str(keypair, state)));
+    PyTuple_SetItem(rc, 1, PyString_FromString(ecc_serialize_private_key(keypair, state)));
     PyTuple_SetItem(rc, 2, PyCObject_FromVoidPtr((void *)(keypair), (fp)_release_keypair));
 
     ecc_free_state(state);

@@ -393,7 +393,8 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	struct affine_point *P, *R;
 	struct aes256ctr *ac;
 	char *readbuf;
-	char *keybuf, *md;
+	char *keybuf = NULL;
+	char *md;
 	void *plaintext = NULL;
 	unsigned int offset = 0;
 	gcry_md_hd_t digest;
@@ -631,4 +632,24 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 		gcry_md_close(digest);
 	exit:
 		return rc;
+}
+
+char *ecc_serialize_private_key(ECC_KeyPair kp, ECC_State state)
+{
+	char *buf = NULL;
+
+	if (!__verify_keypair(kp, true, false)) {
+		__warning("Invalid KeyPair passed to ecc_serialize_private_key()");
+		return NULL;
+	}
+	if (!__verify_state(state)) {
+		__warning("Invalid state passed to ecc_serialize_private_key()");
+		return NULL;
+	}
+
+	buf = (char *)malloc(sizeof(char) * 
+			(1 + state->curveparams->pk_len_compact));
+	serialize_mpi(buf, (1 + state->curveparams->pk_len_compact), 
+			DF_COMPACT, kp->priv);
+	return buf;
 }
