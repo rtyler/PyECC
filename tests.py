@@ -23,7 +23,8 @@ DEFAULT_PLAINTEXT = 'This is a very very secret message!\n'
 class ECC_KeyGen_Tests(unittest.TestCase):
     def test_GenerateBoth(self):
         ecc = pyecc.ECC.generate()
-        print ('private', ecc._private)
+        print ('private', 'public', ecc._private, len(ecc._private), 
+                ecc._public, len(ecc._public))
 
         encrypted = ecc.encrypt(DEFAULT_PLAINTEXT)
         assert encrypted, ('Failed to encrypt?', encrypted, ecc)
