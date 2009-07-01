@@ -579,6 +579,12 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 		goto exit;
 	}
 
+	if (!decompress_from_string(&_ap, keypair->pub, DF_COMPACT, 
+			state->curveparams)) {
+		__warning("Your public key appears invalid");
+		goto exit;
+	}
+
 	err = gcry_md_open(&digest, GCRY_MD_SHA512, 0);
 	if (gcry_err_code(err)) {
 		__gwarning("Failed to initialize SHA-512 message digest", err);
