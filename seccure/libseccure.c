@@ -200,7 +200,6 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 		char *privkey, unsigned int privkeylen, ECC_State state)
 {
 	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
-	gcry_error_t err;
 
 	kp->pub = NULL;
 	kp->priv = NULL;
@@ -211,24 +210,7 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 	}
 
 	if (privkey != NULL) {
-		gcry_md_hd_t container;
-		gcry_mpi_t privkey_hash;
-		char *privkey_secure = NULL;
-
-		err = gcry_md_open(&container, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
-		if (gcry_err_code(err)) {
-			__gwarning("Could not initialize SHA-256 digest for the private key", err);
-			free(kp);
-			return NULL;
-		}
-		gcry_md_write(container, privkey, privkeylen);
-		gcry_md_final(container);
-		privkey_secure = (char *)(gcry_md_read(container, 0));
-
-		privkey_hash = hash_to_exponent(privkey_secure, state->curveparams);
-		gcry_md_close(container);
-
-		kp->priv = privkey_hash;
+		kp->priv = hash_to_exponent(privkey, state->curveparams);
 	}
 
 	return kp;
