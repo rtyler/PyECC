@@ -492,11 +492,11 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	 * Preliminary argument checks, just for sanity of the library 
 	 */
 	if ( (data == NULL) ) {
-		__warning("Invalid or empty `data` argument passed to ecc_verify()");
+		__warning("Invalid or empty `data` argument passed to ecc_sign()");
 		goto exit;
 	}
 	if (!__verify_keypair(keypair, true, false)) {
-		__warning("Invalid ECC_KeyPair object passed to ecc_verify()");
+		__warning("Invalid ECC_KeyPair object passed to ecc_sign()");
 		goto exit;
 	}
 	if (!__verify_state(state)) {
