@@ -154,16 +154,16 @@ static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs
                 &privkey, &privkeylen, &temp_state))
         return NULL;
 
-    if (pubkeylen < 1)
-        return NULL;
-
-
+    /*
+     * Copying into a separate buffer lest Python deallocate our
+     * string out from under us
+     */
     pubkey = (char *)(malloc(sizeof(char) * pubkeylen + 1));
     memcpy(pubkey, temp_pubkey, pubkeylen + 1);
     
     state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
 
-    ECC_KeyPair kp = ecc_new_keypair(pubkey, privkey, state);
+    ECC_KeyPair kp = ecc_new_keypair_s(pubkey, pubkeylen, privkey, privkeylen, state);
 
     PyObject *rc = PyCObject_FromVoidPtr(kp, (fp)(_release_keypair));
     if (!PyCObject_Check(rc)) {
