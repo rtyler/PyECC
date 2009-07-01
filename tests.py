@@ -15,16 +15,12 @@ import pyecc
 # and assume the curve of DEFAULT_CURVE (currently p384)
 #
 DEFAULT_DATA = 'This message will be signed\n'
-DEFAULT_SIG = '$=gXkAjkWjA*>FF*eW@xo6>=B:F3X24$M-L:Pg(5O1SE@zs[cskaTh1K?p+O1G=;L~@slSs{v^6[V9oW/HkzJ+OS]q5ml4=iV(+xR~7>rS+y/TpgL~f[&,c'
-DEFAULT_PUBKEY = '$BWJ_^0>R8,U~/$DZs#@r|-gt}&5|h*U{J_L^lvWk&X-K;R{*&qR(z+zE/xC'
-DEFAULT_PRIVKEY = 'my private key'
+DEFAULT_SIG = '#cE/UfJ@]qte8w-ajzi%S%tO<?$?@QK_hTL&pk-ES1L~C9~4lpm+P7ZXu[mXTJ:%tdhQa:z~~q)BAw{.3dvt!ub+s?sXyxk;S%&+^P-~%}+G3G?Oj-nSDc/'
+DEFAULT_PUBKEY = '#&M=6cSQ}m6C(hUz-7j@E=>oS#TL3F[F[a[q9S;RhMh+F#gP|Q6R}lhT_e7b'
+DEFAULT_PRIVKEY = '!!![t{l5N^uZd=Bg(P#N|PH#IN8I0,Jq/PvdVNi^PxR,(5~p-o[^hPE#40.<|'
 DEFAULT_PLAINTEXT = 'This is a very very secret message!\n'
 
 class ECC_KeyGen_Tests(unittest.TestCase):
-    def test_GenerateWithPrivkey(self):
-        pubkey = pyecc.ECC.public_keygen(DEFAULT_PRIVKEY)
-        assert pubkey == DEFAULT_PUBKEY, ('Mismatch', pubkey, DEFAULT_PUBKEY)
-
     def test_GenerateBoth(self):
         ecc = pyecc.ECC.generate()
         print ('private', ecc._private)
@@ -87,7 +83,7 @@ class ECC_Decrypt_Tests(unittest.TestCase):
         self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
 
     def test_BasicDecrypt(self):
-        encrypted = "\x01\xdb?\xb7|-\x93EF\x16\xa2~\x96\x04\x15\xbaA\xef\x81!\xe8\xaa\x85,\xc8\x13\x86\x8ao'\x98\xee\xa8\xa3\xe0\x07J=6G\xba\\\xf3\xce\xa3\x9e~\xf5\x9d0\xdb\x11}e\xf0\x82\xd0\x92\xfc$S\xd4\xad\xe6\xf0Y\x15\xfe\xadw_+\xff@\x1a \xba\x01N\x95\x9d\x08\xe4\xe1\xcbl\xc5=\xbb\x0e\xacQ\x1e\xd8Q"
+        encrypted = "\x01\xa9\xc0\x1a\x03\\h\xd8\xea,\x8f\xd6\x91W\x8d\xe74x:\x1d\xa8 \xee\x0eD\xfe\xb6\xb0P\x04\xbf\xd5=\xf1?\x00\x9cDw\xae\x0b\xc3\x05BuX\xf1\x9a\x05f\x81\xd1\x15\x8c\x80Q\xa6\xf9\xd7\xf0\x8e\x99\xf2\x11<t\xff\x92\x14\x1c%0W\x8e\x8f\n\n\x9ed\xf8\xff\xc7p\r\x03\xbbw|\xb1h\xc9\xbd+\x02\x87"
         decrypted = self.ecc.decrypt(encrypted)
         assert decrypted  == DEFAULT_PLAINTEXT
         
