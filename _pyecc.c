@@ -248,7 +248,7 @@ static PyObject *py_keygen(PyObject *self, PyObject *args, PyObject *kwargs)
     
     PyTuple_SetItem(rc, 0, PyString_FromString((const char *)(keypair->pub)));
     PyTuple_SetItem(rc, 1, PyString_FromString(ecc_serialize_private_key(keypair, state)));
-    PyTuple_SetItem(rc, 2, PyCObject_FromVoidPtr((void *)(keypair), (fp)_release_keypair));
+    PyTuple_SetItem(rc, 2, PyString_FromString(DEFAULT_CURVE));
 
     ecc_free_state(state);
 
