@@ -30,6 +30,7 @@ class ECC(object):
     def __init__(self, *args, **kwargs):
         self._private = kwargs.get('private')
         self._public = kwargs.get('public')
+        self._curve = kwargs.get('curve')
         self._state = _pyecc.new_state()
         self._kp = _pyecc.new_keypair(self._public, self._private, self._state)
 
@@ -42,7 +43,7 @@ class ECC(object):
     def generate(cls):
         keys = _pyecc.keygen()
         if keys:
-            return cls(public=keys[0], private=keys[1])
+            return cls(public=keys[0], private=keys[1], curve=keys[2])
         return None
 
 
