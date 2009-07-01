@@ -130,18 +130,13 @@ int decompress_from_string(struct affine_point *P, const char *buf,
 int mixin_key_and_curve(struct affine_point *P, gcry_mpi_t pubkey, 
 	const struct curve_params *cp)
 {
-	int yflag;
+	int yflag, res;
 
 	if ((yflag = (gcry_mpi_cmp(pubkey, cp->dp.m) >= 0)))
 		gcry_mpi_sub(pubkey, pubkey, cp->dp.m);
-	
-	if (!(gcry_mpi_cmp_ui(pubkey, 0) >= 0))
-		return 0;
-	if (!(gcry_mpi_cmp(pubkey, cp->dp.m) < 0))
-		return 0;
-	if (!point_decompress(P, pubkey, yflag, &cp->dp))
-		return 0;
-	return 1;
+	res = gcry_mpi_cmp_ui(pubkey, 0) >= 0 && gcry_mpi_cmp(pubkey, cp->dp.m) < 0 &&
+			point_decompress(P, pubkey, yflag, &cp->dp);
+	return res;
 }
 
 /******************************************************************************/
