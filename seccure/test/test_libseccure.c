@@ -54,6 +54,7 @@ void __test_verify()
 	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 	g_assert(ecc_verify(DEFAULT_DATA, DEFAULT_SIG, kp, state));
 	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 
 void __test_verify_nullkp()
@@ -67,6 +68,7 @@ void __test_verify_nulldata()
 	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 	g_assert(ecc_verify(NULL, DEFAULT_SIG, kp, state) == false);
 	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 
 void __test_verify_nullsig()
@@ -75,6 +77,7 @@ void __test_verify_nullsig()
 	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 	g_assert(ecc_verify(DEFAULT_DATA, NULL, kp, state) == false);
 	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 
 void __test_verify_crapsig()
@@ -83,6 +86,7 @@ void __test_verify_crapsig()
 	ECC_KeyPair kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 	g_assert(ecc_verify(DEFAULT_DATA, "This sig is crap", kp, state) == false);
 	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 
 
@@ -101,7 +105,7 @@ void __test_new_keypair()
 	g_assert(kp->pub == NULL);
 
 	ecc_free_state(state);
-	free(kp);
+	ecc_free_keypair(kp);
 }
 
 /**
@@ -165,6 +169,7 @@ void __test_sign()
 	 */
 	g_assert(ecc_verify(DEFAULT_DATA, result->data, kp, state));
 	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 void __test_sign_nulldata()
 {
@@ -174,6 +179,7 @@ void __test_sign_nulldata()
 	ECC_Data result = ecc_sign(NULL, kp, state);
 	g_assert(result == NULL);
 	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 void __test_sign_nullkp()
 {
@@ -197,6 +203,7 @@ void __test_keygen()
 	g_assert(result->pub != NULL);
 	g_assert_cmpstr(result->pub, ==, DEFAULT_PUBKEY);
 	ecc_free_state(state);
+	ecc_free_keypair(result);
 }
 
 /**
@@ -217,6 +224,7 @@ void __test_full_keygen()
 	fprintf(stderr, "priv %s\n", ecc_mpi_to_str(result->priv));
 
 	ecc_free_state(state);
+	ecc_free_keypair(result);
 }
 
 
@@ -244,6 +252,8 @@ void __test_encrypt()
 
 	if (result)
 		ecc_free_data(result);
+	ecc_free_state(state);
+	ecc_free_keypair(kp);
 }
 
 

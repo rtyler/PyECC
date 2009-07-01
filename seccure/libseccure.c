@@ -170,10 +170,15 @@ void ecc_free_keypair(ECC_KeyPair kp)
 	if (kp == NULL)
 		return;
 	
+	/*
+	 * Double-free()'s for some god-awful reason
+	 *
+	if ( (kp->pub) && (kp->pub_bytes) )
+		free(kp->pub);
+	 */
+
 	if (kp->priv)
 		gcry_mpi_release(kp->priv);
-	if (kp->pub)
-		gcry_mpi_release(kp->pub);
 	free(kp);
 }
 
@@ -491,7 +496,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	/* 
 	 * Preliminary argument checks, just for sanity of the library 
 	 */
-	if ( (data == NULL) ) {
+	if (!data) {
 		__warning("Invalid or empty `data` argument passed to ecc_sign()");
 		goto exit;
 	}
