@@ -216,8 +216,11 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 	}
 
 	if (privkey != NULL) {
-		if (!deserialize_mpi(&kp->priv, DF_COMPACT, privkey, privkeylen)) 
-			kp->priv = hash_to_exponent(privkey, state->curveparams);
+		if (!deserialize_mpi(&kp->priv, DF_COMPACT, privkey, privkeylen)) {
+			__warning("Failed to deserialize the private key in ecc_new_keypair_s()");
+			ecc_free_keypair(kp);
+			return NULL;
+		}
 	}
 
 	return kp;
@@ -270,7 +273,8 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		__warning("Failed to generate a random buffer of N bytes");
 		ecc_free_keypair(result);
 	}
-	result = ecc_new_keypair_s(NULL, 0,  r, bits, state);
+	result = ecc_new_keypair_s(NULL, 0,  NULL, 0, state);
+	result->priv = hash_to_exponent(r, state->curveparams);
 
 	if (r)
 		free(r);
