@@ -25,6 +25,8 @@
 #include <glib.h>
 #include <gcrypt.h>
 
+#include "protocol.h"
+#include "serialize.h"
 #include "libseccure.h"
 
 
@@ -33,13 +35,13 @@
  * assume the curve of DEFAULT_CURVE (currently p384)
  */
 #define DEFAULT_DATA "This message will be signed\n"
-#define DEFAULT_SIG "#EFdrR?0<(cyQxVwD[cS@$e~?yc%$}&FZP;rJp2C~EXQ#-lixNsn{.(H{v?.K2wX2NqX7=l4]lOG<S2d1/0|GW1t09uY05,c!m@aV9w(hjamnXmY6Sn?<Dt"
+#define DEFAULT_SIG "#cE/UfJ@]qte8w-ajzi%S%tO<?$?@QK_hTL&pk-ES1L~C9~4lpm+P7ZXu[mXTJ:%tdhQa:z~~q)BAw{.3dvt!ub+s?sXyxk;S%&+^P-~%}+G3G?Oj-nSDc/"
 
 /*
  * private and public key generated with a 384 curve
  */
-#define DEFAULT_PUBKEY "$W)@?/~~e?oP[3mwjU=sBs-&~NLJp$JfWOA*<yk/{Jn6(-8h)fp]mc<tRzo("
-#define DEFAULT_PRIVKEY "63BFBC50CB44938B5486FE5535030519093040EEE99280858CA4A79C0581B1D7494C590AD724742525C0724376535836"
+#define DEFAULT_PUBKEY "#&M=6cSQ}m6C(hUz-7j@E=>oS#TL3F[F[a[q9S;RhMh+F#gP|Q6R}lhT_e7b"
+#define DEFAULT_PRIVKEY "!!![t{l5N^uZd=Bg(P#N|PH#IN8I0,Jq/PvdVNi^PxR,(5~p-o[^hPE#40.<|"
 
 #define DEFAULT_PLAINTEXT "This is a very very secret message!\n"
 
@@ -220,8 +222,17 @@ void __test_full_keygen()
 	g_assert(result->pub != NULL);
 	g_assert(result->priv != NULL);
 
+	/*
+
 	fprintf(stderr, "pub %s\n",  (char *)(result->pub));
-	fprintf(stderr, "priv %s\n", ecc_mpi_to_str(result->priv));
+
+	char *buf = (char *)malloc(sizeof(char) * 
+			(1 + state->curveparams->pk_len_compact));
+	serialize_mpi(buf, (1 + state->curveparams->pk_len_compact), 
+			DF_COMPACT, result->priv);
+
+	fprintf(stderr, "priv %s\n", buf);
+	*/
 
 	ecc_free_state(state);
 	ecc_free_keypair(result);

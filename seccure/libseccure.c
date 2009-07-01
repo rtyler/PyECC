@@ -216,7 +216,8 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 	}
 
 	if (privkey != NULL) {
-		kp->priv = hash_to_exponent(privkey, state->curveparams);
+		if (!deserialize_mpi(&kp->priv, DF_COMPACT, privkey, privkeylen)) 
+			kp->priv = hash_to_exponent(privkey, state->curveparams);
 	}
 
 	return kp;
