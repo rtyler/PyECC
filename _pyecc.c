@@ -228,35 +228,6 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
     return PyString_FromString((const char *)(result->data));
 }
 
-static char pubkeygen_doc [] = "\
-\n\
-";
-static PyObject *py_pubkeygen(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-    ECC_State state = NULL;
-    ECC_KeyPair kp = NULL;
-    char *plaintext_privkey;
-    PyObject *pubkey;
-    unsigned int keylen;
-
-    if (!PyArg_ParseTuple(args, "s#", &plaintext_privkey, &keylen)) 
-        return NULL;
-
-    state = ecc_new_state(NULL);
-    kp = ecc_keygen(plaintext_privkey, state);
-
-    pubkey = PyString_FromString((char *)(kp->pub));
-    if (PyErr_Occurred()) {
-        Py_XDECREF(pubkey);
-        pubkey = NULL;
-    }
-
-    ecc_free_state(state);
-    ecc_free_keypair(kp);
-
-    return pubkey;
-}
-
 static PyObject *py_keygen(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     ECC_State state;
@@ -292,7 +263,6 @@ static struct PyMethodDef _pyecc_methods[] = {
     {"sign", (PyCFunction)py_sign, METH_VARARGS, sign_doc},
     {"encrypt", (PyCFunction)py_encrypt, METH_VARARGS, encrypt_doc},
     {"decrypt", (PyCFunction)py_decrypt, METH_VARARGS, decrypt_doc},
-    {"pubkey_gen", (PyCFunction)py_pubkeygen, METH_VARARGS, pubkeygen_doc},
     {"keygen", (PyCFunction)(py_keygen), METH_NOARGS, NULL},
     {NULL}
 };
