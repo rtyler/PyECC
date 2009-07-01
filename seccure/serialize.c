@@ -130,6 +130,7 @@ int deserialize_mpi(gcry_mpi_t *x, enum disp_format df, const char *buf,
       for(i = 0; i < inlen; i++) {
 	if (! (d = memchr(compact_digits, buf[i], COMPACT_DIGITS_COUNT))) {
 	  gcry_mpi_release(*x);
+	  *x = NULL;
 	  return 0;
 	}
 	gcry_mpi_mul_ui(*x, *x, COMPACT_DIGITS_COUNT);
