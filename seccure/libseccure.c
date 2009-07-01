@@ -208,6 +208,7 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 
 	kp->pub = NULL;
 	kp->priv = NULL;
+	kp->pub_bytes = 0;
 
 	if (pubkey != NULL) {
 		kp->pub = pubkey;
