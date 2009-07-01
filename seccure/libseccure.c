@@ -181,8 +181,15 @@ ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state)
 {
 	unsigned int publen = 0;
 	unsigned int privlen = 0;
+	/*
+	 * If we have a pubkey, it should be cp->pk_len_compact and no larger
+	 */
 	if (pubkey)
-		publen = strlen((const char *)(pubkey));
+		publen = state->curveparams->pk_len_compact;
+	/*
+	 * Relying on the private key being passed in as a legit string (i.e.
+	 * a hex encoded MPI
+	 */
 	if (privkey)
 		privlen = strlen((const char *)(privkey));
 
@@ -214,7 +221,7 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 			free(kp);
 			return NULL;
 		}
-		gcry_md_write(container, privkey, strlen(privkey));
+		gcry_md_write(container, privkey, privkeylen);
 		gcry_md_final(container);
 		privkey_secure = (char *)(gcry_md_read(container, 0));
 
@@ -402,7 +409,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	unsigned int offset = 0;
 	gcry_md_hd_t digest;
 
-	if ( (data == NULL) || (strlen(data) == 0) ) {
+	if ( (data == NULL) ) {
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		goto exit;
 	}
@@ -572,7 +579,7 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 	/*
 	 * Preliminary argument checks, just for sanity of the library
 	 */
-	if ( (data == NULL) || (strlen(data) == 0) ) {
+	if ( (data == NULL) ) {
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		goto exit;
 	}
