@@ -33,13 +33,13 @@
  * assume the curve of DEFAULT_CURVE (currently p384)
  */
 #define DEFAULT_DATA "This message will be signed\n"
-#define DEFAULT_SIG "#EFdrR?0<(cyQxVwD[cS@$e~?yc%$}&FZP;rJp2C~EXQ#-lixNsn{.(H{v?.K2wX2NqX7=l4]lOG<S2d1/0|GW1t09uY05,c!m@aV9w(hjamnXmY6Sn?<Dt"
+#define DEFAULT_SIG "#ULQ+CXQ7X1tuhV[~QDVUi=QDqHz=/jLE,%(Q*lkVL#gvmnTfPWmm$&lBPOV!RLWH8>}l#6Bmyyw1Tn=)>A*vmXnR~8:Luu%3zwm%I<U+z|Z+Y(3$aT9N<["
 
 /*
  * private and public key generated with a 384 curve
  */
-#define DEFAULT_PUBKEY "$W)@?/~~e?oP[3mwjU=sBs-&~NLJp$JfWOA*<yk/{Jn6(-8h)fp]mc<tRzo("
-#define DEFAULT_PRIVKEY "63BFBC50CB44938B5486FE5535030519093040EEE99280858CA4A79C0581B1D7494C590AD724742525C0724376535836"
+#define DEFAULT_PUBKEY "!yq%90PDXS~3?Y#u34Ob}wJj@l*rS0S$Pq|QBs<nIA5aEOo)Z?Gjw<(EF^o|"
+#define DEFAULT_PRIVKEY "00C27002A8BABC6C5FE7FD01B88B6D4B4BD9F143DE43B1EC27E6BAE83CF9474F69BC51B3DACC0F41FB865705D87C719A7A"
 
 #define DEFAULT_PLAINTEXT "This is a very very secret message!\n"
 
