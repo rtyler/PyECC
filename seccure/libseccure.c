@@ -274,7 +274,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		__warning("Failed to generate a random buffer of N bytes");
 		ecc_free_keypair(result);
 	}
-	result = ecc_new_keypair(NULL, r, state);
+	result = ecc_new_keypair_s(NULL, 0,  r, bits, state);
 
 	if (r)
 		free(r);
