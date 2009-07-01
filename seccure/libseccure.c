@@ -269,7 +269,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	 */
 	bits = gcry_mpi_get_nbits(state->curveparams->dp.order);
 	r = (char *)(malloc(bits));
-	gcry_randomize(r, bits / 8, GCRY_VERY_STRONG_RANDOM);
+	gcry_randomize(r, bits, GCRY_VERY_STRONG_RANDOM);
 	if (!r) {
 		__warning("Failed to generate a random buffer of N bytes");
 		ecc_free_keypair(result);
