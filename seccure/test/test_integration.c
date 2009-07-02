@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <glib.h>
 #include <gcrypt.h>
@@ -97,6 +98,7 @@ void __test_keygen_encryptsalot()
 	ECC_State state = ecc_new_state(NULL);
 	ECC_KeyPair keypair = ecc_keygen(NULL, state);
 	ECC_Data encrypted, last_run, decrypted;
+	time_t before, after;
 	unsigned int i = 0;
 	const char *data = "This should be all encrypted and such\n";
 	encrypted = last_run = NULL;
@@ -106,8 +108,11 @@ void __test_keygen_encryptsalot()
 	g_assert(keypair->priv != NULL);
 
 	for (; i < LOOPS; ++i) {
-		fprintf(stderr, "%d, ", i);
+		fprintf(stderr, "%d", i);
+		before = time(NULL);
 		encrypted = ecc_encrypt(data, strlen(data), keypair, state);
+		after = time(NULL);
+		fprintf(stderr, "(%fs), ", ((float)after) - ((float)after));
 
 		g_assert(data != NULL);
 		g_assert(encrypted != NULL);
