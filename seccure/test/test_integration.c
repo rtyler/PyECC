@@ -96,7 +96,7 @@ void __test_keygen_encryptsalot()
 {
 	ECC_State state = ecc_new_state(NULL);
 	ECC_KeyPair keypair = ecc_keygen(NULL, state);
-	ECC_Data encrypted, last_run;
+	ECC_Data encrypted, last_run, decrypted;
 	unsigned int i = 0;
 	const char *data = "This should be all encrypted and such\n";
 	encrypted = last_run = NULL;
@@ -117,7 +117,10 @@ void __test_keygen_encryptsalot()
 			last_run = encrypted;
 		}
 		else {
-			assert_eqaul_data(encrypted, last_run);
+			decrypted = ecc_decrypt(encrypted, keypair, state);
+			g_assert_cmpstr(data, ==, decrypted->data);
+			ecc_free_data(decrypted);
+			g_assert(last_run->datalen == encrypted->datalen);
 			ecc_free_data(last_run);
 			last_run = encrypted;
 		}
