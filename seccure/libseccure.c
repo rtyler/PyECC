@@ -163,6 +163,7 @@ void ecc_free_state(ECC_State state)
 	}
 
 	free(state);
+	state = NULL;
 }
 
 void ecc_free_keypair(ECC_KeyPair kp)
@@ -180,6 +181,7 @@ void ecc_free_keypair(ECC_KeyPair kp)
 	if (kp->priv)
 		gcry_mpi_release(kp->priv);
 	free(kp);
+	kp = NULL;
 }
 
 ECC_KeyPair ecc_new_keypair(char *pubkey, char *privkey, ECC_State state)
@@ -239,6 +241,7 @@ void ecc_free_data(ECC_Data data)
 	if (data->data != NULL)
 		free(data->data);
 	free(data);
+	data = NULL;
 }
 
 ECC_Options ecc_new_options()
