@@ -28,8 +28,7 @@
 
 #include "libseccure.h"
 
-
-#define LOOPS 100
+#define LOOPS 200
 
 void __test_keygen_to_sign()
 {
@@ -93,12 +92,25 @@ void assert_eqaul_data(ECC_Data left, ECC_Data right)
 		abort();
 }
 
+void __test_keygensalot()
+{
+	ECC_State state = ecc_new_state(NULL);
+	ECC_KeyPair keypair = NULL;
+	unsigned int i = 0;
+
+	for (; i < LOOPS; ++i) {
+		fprintf(stderr, "%d, ", i);
+		keypair = ecc_keygen(NULL, state);
+		ecc_free_keypair(keypair);
+	}
+	ecc_free_state(state);
+}
+
 void __test_keygen_encryptsalot()
 {
 	ECC_State state = ecc_new_state(NULL);
 	ECC_KeyPair keypair = ecc_keygen(NULL, state);
 	ECC_Data encrypted, last_run, decrypted;
-	time_t before, after;
 	unsigned int i = 0;
 	const char *data = "This should be all encrypted and such\n";
 	encrypted = last_run = NULL;
@@ -108,11 +120,8 @@ void __test_keygen_encryptsalot()
 	g_assert(keypair->priv != NULL);
 
 	for (; i < LOOPS; ++i) {
-		fprintf(stderr, "%d", i);
-		before = time(NULL);
+		fprintf(stderr, "%d, ", i);
 		encrypted = ecc_encrypt(data, strlen(data), keypair, state);
-		after = time(NULL);
-		fprintf(stderr, "(%fs), ", ((float)after) - ((float)after));
 
 		g_assert(data != NULL);
 		g_assert(encrypted != NULL);
@@ -140,6 +149,7 @@ int main(int argc, char **argv)
 
 	g_test_add_func("/integration/keygen_to_sign", __test_keygen_to_sign);
 	g_test_add_func("/integration/keygen_to_encrypt", __test_keygen_to_encrypt);
+	g_test_add_func("/integration/keygensalot", __test_keygensalot);
 	g_test_add_func("/integration/keygen_encryptsalot", __test_keygen_encryptsalot);
 
 	return g_test_run();
