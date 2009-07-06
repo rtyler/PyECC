@@ -64,6 +64,9 @@ static PyObject *py_new_state(PyObject *self, PyObject *args, PyObject *kwargs)
 
 
 static char encrypt_doc[] = "\
+Encrypt a string buffer of data, expects to be \
+passed a buffer, a ECC_KeyPair PyCObject and a \
+ECC_State PyCObject \
 \n\
 ";
 static PyObject *py_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -94,6 +97,9 @@ static PyObject *py_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 static char decrypt_doc[] = "\
+Decrypt a buffer of encrypted data, expects to be \
+passed a buffer, a ECC_KeyPair PyCObject and a \
+ECC_State PyCObject \
 \n\
 ";
 static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -228,6 +234,10 @@ static PyObject *py_sign(PyObject *self, PyObject *args, PyObject *kwargs)
     return PyString_FromString((const char *)(result->data));
 }
 
+static char keygen_doc[] = "\
+Generate a set of keys, returns a tuple containing \
+three values: (serialized public key, serialized private key, curve)\n\
+";
 static PyObject *py_keygen(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     ECC_State state;
@@ -266,7 +276,7 @@ static struct PyMethodDef _pyecc_methods[] = {
     {"sign", (PyCFunction)py_sign, METH_VARARGS, sign_doc},
     {"encrypt", (PyCFunction)py_encrypt, METH_VARARGS, encrypt_doc},
     {"decrypt", (PyCFunction)py_decrypt, METH_VARARGS, decrypt_doc},
-    {"keygen", (PyCFunction)(py_keygen), METH_NOARGS, NULL},
+    {"keygen", (PyCFunction)(py_keygen), METH_NOARGS, keygen_doc},
     {NULL}
 };
 
