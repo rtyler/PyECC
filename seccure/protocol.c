@@ -124,6 +124,7 @@ int decompress_from_string(struct affine_point *P, const char *buf,
   if ((res = deserialize_mpi(&x, df, buf, inlen))) {
 	res = mixin_key_and_curve(P, x, cp);
   }
+  gcry_mpi_release(x);
   return res;
 }
 
