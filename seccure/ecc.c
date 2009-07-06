@@ -56,6 +56,8 @@ void point_release(struct affine_point *p)
 {
   gcry_mpi_release(p->x);
   gcry_mpi_release(p->y);
+  p->x = NULL;
+  p->y = NULL;
 }
 
 void point_set(struct affine_point *p1, const struct affine_point *p2)
