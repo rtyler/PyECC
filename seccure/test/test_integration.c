@@ -29,7 +29,7 @@
 
 #include "libseccure.h"
 
-#define LOOPS 500
+#define LOOPS 100
 
 void __test_keygen_to_sign()
 {
@@ -100,7 +100,7 @@ void __test_keygensalot()
 	unsigned int i = 0;
 
 	for (; i < LOOPS; ++i) {
-		fprintf(stderr, "%d, ", i);
+		fprintf(stderr, ".");
 		keypair = ecc_keygen(NULL, state);
 		ecc_free_keypair(keypair);
 	}
@@ -121,7 +121,7 @@ void __test_keygen_encryptsalot()
 	g_assert(keypair->priv != NULL);
 
 	for (; i < LOOPS; ++i) {
-		fprintf(stderr, "%d (%d), ", i, errno);
+		fprintf(stderr, ".");
 		encrypted = ecc_encrypt(data, strlen(data), keypair, state);
 
 		g_assert(data != NULL);
