@@ -29,7 +29,7 @@
 
 #include "libseccure.h"
 
-#define LOOPS 200
+#define LOOPS 500
 
 void __test_keygen_to_sign()
 {
