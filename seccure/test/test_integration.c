@@ -17,6 +17,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,7 +121,7 @@ void __test_keygen_encryptsalot()
 	g_assert(keypair->priv != NULL);
 
 	for (; i < LOOPS; ++i) {
-		fprintf(stderr, "%d, ", i);
+		fprintf(stderr, "%d (%d), ", i, errno);
 		encrypted = ecc_encrypt(data, strlen(data), keypair, state);
 
 		g_assert(data != NULL);
