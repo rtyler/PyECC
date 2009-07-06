@@ -258,7 +258,7 @@ void __test_encrypt()
 
     kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 
-	decrypted = (char *)(ecc_decrypt(result, kp, state));
+	decrypted = ecc_decrypt(result, kp, state);
 	g_assert_cmpstr(DEFAULT_PLAINTEXT, ==, decrypted->data);
 
 	if (result)
