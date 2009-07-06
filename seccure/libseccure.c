@@ -231,6 +231,7 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 ECC_Data ecc_new_data()
 {
 	ECC_Data data = (ECC_Data)(malloc(sizeof(struct _ECC_Data)));
+	data->data = NULL;
 	data->datalen = 0;
 	return data;
 }
