@@ -35,6 +35,7 @@
  *
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <gcrypt.h>
@@ -110,8 +111,10 @@ int hmacsha256_init(gcry_md_hd_t *mh, const char *key, int len)
 
   err = gcry_md_open(mh, GCRY_MD_SHA256, 
 		     GCRY_MD_FLAG_HMAC | GCRY_MD_FLAG_SECURE);
-  if (gcry_err_code(err))
+  if (gcry_err_code(err)) {
+    fprintf(stderr, "Error in hmacsha256_init(): %s\n", gcry_strerror(err));
     return 0;
+  }
   
   err = gcry_md_setkey(*mh, key, len);
   return ! gcry_err_code(err);
