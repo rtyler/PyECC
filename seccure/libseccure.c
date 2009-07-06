@@ -389,9 +389,11 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	gcry_md_close(digest);
 
 	offset = offset - DEFAULT_MAC_LEN;
-	rc->data = (void *)(malloc(sizeof(char) * offset));
+	rc->data = (void *)(malloc(sizeof(char) * (offset + 1)));
 	rc->datalen = offset;
 	memcpy(rc->data, block, offset);
+
+	((char *)rc->data)[offset] = '\0';
 
 	bailout:
 		point_release(R);
