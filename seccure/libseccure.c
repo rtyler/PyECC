@@ -279,13 +279,16 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	result = ecc_new_keypair_s(NULL, 0,  NULL, 0, state);
 	result->priv = hash_to_exponent(r, state->curveparams);
 
-	if (r)
+	if (r) {
 		free(r);
+		r = NULL;
+	}
+
 
 	/*
 	 * This makes me die inside
 	 */
-	r = malloc(sizeof(char) * (state->curveparams->pk_len_compact + 1));
+	r = (char *)(malloc(sizeof(char) * (state->curveparams->pk_len_compact + 1)));
 
 	ap = pointmul(&state->curveparams->dp.base, result->priv,
 		&state->curveparams->dp);
@@ -367,7 +370,7 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	}
 
 	rc = ecc_new_data();
-	memset(keybuf, 0x00, 64);
+	bzero(keybuf, 64);
 
 	/*
 	 * Decrypt the rest of the block (the actual encrypted data)
@@ -378,7 +381,10 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	gcry_md_write(digest, block, offset);
 
 	aes256ctr_dec(ac, block, offset);
+
+	/* aes256ctr_done() will also handle gcry_free()'ing the pointer */
 	aes256ctr_done(ac);
+	/* gcry_md_close() will also handle gcry_free()'ing the pointer */
 	gcry_md_close(digest);
 
 	offset = offset - DEFAULT_MAC_LEN;
@@ -390,6 +396,7 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 		point_release(R);
 		free(R);
 		gcry_free(keybuf);
+		keybuf = NULL;
 	exit:
 		return rc;
 }
@@ -482,6 +489,10 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	rc->datalen = offset;
 
 	free(plaintext);
+	/*
+	 * Upon closing the hash digest, the `md` pointer should also
+	 * be freed
+	 */
 	gcry_md_close(digest);
 
 	bailout:
