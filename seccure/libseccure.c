@@ -16,6 +16,8 @@
  * Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -124,6 +126,13 @@ struct curve_params *__curve_from_opts(ECC_Options opts)
 ECC_State ecc_new_state(ECC_Options opts)
 {
 	ECC_State state = (ECC_State)(malloc(sizeof(struct _ECC_State)));
+
+	if (!state) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate enough memory in ecc_new_state()");
+		return NULL;
+	}
+
 	bzero(state, sizeof(struct _ECC_State));
 
 	state->options = opts;
@@ -141,6 +150,7 @@ ECC_State ecc_new_state(ECC_Options opts)
 
 void ecc_free_state(ECC_State state)
 {
+	gcry_error_t err = 0;
 	if (state == NULL)
 		return;
 	
@@ -154,8 +164,6 @@ void ecc_free_state(ECC_State state)
 		__init_ecc_refcount--;
 
 		if (__init_ecc_refcount == 0) {
-			gcry_error_t err;
-
 			err = gcry_control(GCRYCTL_TERM_SECMEM);
 			if (gcry_err_code(err))
 				__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
@@ -170,16 +178,10 @@ void ecc_free_keypair(ECC_KeyPair kp)
 {
 	if (kp == NULL)
 		return;
-	
-	/*
-	 * Double-free()'s for some god-awful reason
-	 *
-	if ( (kp->pub) && (kp->pub_bytes) )
-		free(kp->pub);
-	 */
 
 	if (kp->priv)
 		gcry_mpi_release(kp->priv);
+
 	free(kp);
 	kp = NULL;
 }
@@ -208,6 +210,12 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 {
 	ECC_KeyPair kp = (ECC_KeyPair)(malloc(sizeof(struct _ECC_KeyPair)));
 
+	if (!kp) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory in ecc_new_keypair_s()");
+		return NULL;
+	}
+
 	kp->pub = NULL;
 	kp->priv = NULL;
 	kp->pub_bytes = 0;
@@ -231,6 +239,13 @@ ECC_KeyPair ecc_new_keypair_s(char *pubkey, unsigned int pubkeylen,
 ECC_Data ecc_new_data()
 {
 	ECC_Data data = (ECC_Data)(malloc(sizeof(struct _ECC_Data)));
+
+	if (!data) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory in ecc_new_data()");
+		return NULL;
+	}
+
 	data->data = NULL;
 	data->datalen = 0;
 	return data;
@@ -248,6 +263,12 @@ void ecc_free_data(ECC_Data data)
 ECC_Options ecc_new_options()
 {
 	ECC_Options opts = (ECC_Options)(malloc(sizeof(struct _ECC_Options)));
+	
+	if (!opts) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory in ecc_new_options()");
+		return NULL;
+	}
 	/*
 	 * Setup the default values of the ::ECC_Options object
 	 */
@@ -272,12 +293,29 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 	 */
 	bits = gcry_mpi_get_nbits(state->curveparams->dp.order);
 	r = (char *)(malloc(bits));
+
+	if (!r) {
+		if (errno == ENOMEM) 
+			__warning("Cannot allocate memory for `bits` in ecc_keygen()");
+		return NULL;
+	}
+
 	gcry_randomize(r, bits, GCRY_VERY_STRONG_RANDOM);
+
 	if (!r) {
 		__warning("Failed to generate a random buffer of N bytes");
-		ecc_free_keypair(result);
+		return NULL;
 	}
+
 	result = ecc_new_keypair_s(NULL, 0,  NULL, 0, state);
+
+	if (!result) {
+		__warning("Failed to generate empty keypair in ecc_keygen()!");
+		if (r)
+			free(r);
+		return NULL;
+	}
+
 	result->priv = hash_to_exponent(r, state->curveparams);
 
 	if (r) {
@@ -285,11 +323,13 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 		r = NULL;
 	}
 
-
-	/*
-	 * This makes me die inside
-	 */
 	r = (char *)(malloc(sizeof(char) * (state->curveparams->pk_len_compact + 1)));
+
+	if (!r) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate `r` again in ecc_keygen()");
+		return NULL;
+	}
 
 	ap = pointmul(&state->curveparams->dp.base, result->priv,
 		&state->curveparams->dp);
@@ -307,7 +347,7 @@ ECC_KeyPair ecc_keygen(void *priv, ECC_State state)
 
 const char *ecc_mpi_to_str(gcry_mpi_t key)
 {
-	gcry_error_t err;
+	gcry_error_t err = 0;
 	unsigned char *buf;
 	size_t written;
 
@@ -329,7 +369,7 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	char *keybuf, *block;
 	struct aes256ctr *ac;
 	gcry_md_hd_t digest;
-	struct affine_point *R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
+	struct affine_point *R = NULL;
 
 	if (!__verify_state(state)) {
 		__warning("Invalid state passed to ecc_decrypt()");
@@ -343,6 +383,14 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 	/*
 	 * Take the first bits off buffer to get the curve info
 	 */
+	R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
+
+	if (!R) {
+		if (errno == ENOMEM) 
+			__warning("Cannot allocate memory for `R` in ecc_decrypt()");
+		return NULL;
+	}
+
 	if (!decompress_from_string(R, (char *)(encrypted->data), DF_BIN, 
 				state->curveparams)) {
 		__warning("Failed to decompress_from_string() in ecc_decrypt()");
@@ -390,6 +438,11 @@ ECC_Data ecc_decrypt(ECC_Data encrypted, ECC_KeyPair keypair, ECC_State state)
 
 	offset = offset - DEFAULT_MAC_LEN;
 	rc->data = (void *)(malloc(sizeof(char) * (offset + 1)));
+	if (!rc->data) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory for `rc->data` in ecc_decrypt()");
+		goto bailout;
+	}
 	rc->datalen = offset;
 	memcpy(rc->data, block, offset);
 
@@ -433,6 +486,18 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	P = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 	R = (struct affine_point *)(malloc(sizeof(struct affine_point)));
 
+	if ( (!readbuf) || (!R) || (!P) ) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory for `readbuf`, `P`, `R` in ecc_encrypt()");
+		if (R)
+			free(R);
+		if (P)
+			free(P);
+		if (readbuf)
+			free(readbuf);
+		return NULL;
+	}
+
 	if (!decompress_from_string(P, (char *)keypair->pub, 
 			DF_COMPACT, state->curveparams)) {
 		__warning("Invalid public key");
@@ -468,7 +533,19 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 			(sizeof(char) * databytes) +
 			(sizeof(char) * DEFAULT_MAC_LEN)));
 
+	if (!rc->data) {
+		if (errno == ENOMEM) 
+			__warning("Cannot allocate memory for `rc->data` in ecc_encrypt()");
+		goto bailout;
+	}
+
 	plaintext = (void *)(malloc(sizeof(char) * databytes));
+
+	if (!plaintext) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory for `plaintext` in ecc_encrypt()");
+		goto bailout;
+	}
 	memcpy(plaintext, data, databytes);
 
 	aes256ctr_enc(ac, plaintext, databytes);
@@ -513,7 +590,7 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 {
 	ECC_Data rc = NULL;
 	gcry_md_hd_t digest;
-	gcry_error_t err;
+	gcry_error_t err = 0;
 	gcry_mpi_t signature = NULL;
 	char *digest_buf, *serialized;
 
@@ -565,6 +642,14 @@ ECC_Data ecc_sign(char *data, ECC_KeyPair keypair, ECC_State state)
 	serialized = (char *)(malloc(sizeof(char) * 
 			(1 + state->curveparams->sig_len_compact)));
 
+	if (!serialized) {
+		if (errno == ENOMEM)
+			__warning("Cannot allocate memory for `serialized` in ecc_sign()");
+		ecc_free_data(rc);
+		rc = NULL;
+		goto bailout;
+	}
+
 	serialize_mpi(serialized, state->curveparams->sig_len_compact, 
 			DF_COMPACT, signature);
 	serialized[state->curveparams->sig_len_compact] = '\0';
@@ -581,7 +666,7 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 {
 	bool rc = false;
 	struct affine_point _ap;
-	gcry_error_t err;
+	gcry_error_t err = 0;
 	gcry_mpi_t deserialized_sig;
 	gcry_md_hd_t digest;
 	char *digest_buf = NULL;
