@@ -4,6 +4,7 @@
 
 '''
 import copy
+import gc
 import sys
 import types
 import unittest
@@ -19,6 +20,7 @@ DEFAULT_SIG = '#cE/UfJ@]qte8w-ajzi%S%tO<?$?@QK_hTL&pk-ES1L~C9~4lpm+P7ZXu[mXTJ:%t
 DEFAULT_PUBKEY = '#&M=6cSQ}m6C(hUz-7j@E=>oS#TL3F[F[a[q9S;RhMh+F#gP|Q6R}lhT_e7b'
 DEFAULT_PRIVKEY = '!!![t{l5N^uZd=Bg(P#N|PH#IN8I0,Jq/PvdVNi^PxR,(5~p-o[^hPE#40.<|'
 DEFAULT_PLAINTEXT = 'This is a very very secret message!\n'
+LOOPS = 100
 
 class ECC_KeyGen_Tests(unittest.TestCase):
     def test_GenerateBoth(self):
@@ -87,7 +89,23 @@ class ECC_Decrypt_Tests(unittest.TestCase):
         encrypted = "\x01\xa9\xc0\x1a\x03\\h\xd8\xea,\x8f\xd6\x91W\x8d\xe74x:\x1d\xa8 \xee\x0eD\xfe\xb6\xb0P\x04\xbf\xd5=\xf1?\x00\x9cDw\xae\x0b\xc3\x05BuX\xf1\x9a\x05f\x81\xd1\x15\x8c\x80Q\xa6\xf9\xd7\xf0\x8e\x99\xf2\x11<t\xff\x92\x14\x1c%0W\x8e\x8f\n\n\x9ed\xf8\xff\xc7p\r\x03\xbbw|\xb1h\xc9\xbd+\x02\x87"
         decrypted = self.ecc.decrypt(encrypted)
         assert decrypted  == DEFAULT_PLAINTEXT
-        
+
+
+class ECC_GC_Checks(unittest.TestCase):
+    def setUp(self):
+        super(ECC_GC_Checks, self).setUp()
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
+
+    def test_Encrypts(self):
+        objects = None
+        for i in xrange(LOOPS):
+            encrypted = self.ecc.encrypt(DEFAULT_PLAINTEXT)
+            assert encrypted
+
+            l = len(gc.get_objects())
+            if objects:
+                assert objects == l, (l, objects, 'Count is off')
+            objects = l
 
 if __name__ == '__main__':
     suites = []
