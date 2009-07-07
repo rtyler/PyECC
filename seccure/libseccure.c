@@ -501,7 +501,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	if (!decompress_from_string(P, (char *)keypair->pub, 
 			DF_COMPACT, state->curveparams)) {
 		__warning("Invalid public key");
-		goto bailout;
+		goto exit;
 	}
 
 	/* Why only 64? */
@@ -514,11 +514,11 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 
 	if (!(ac = aes256ctr_init(keybuf))) {
 		__warning("Cannot initialize AES256-CTR");
-		goto bailout;
+		goto release;
 	}
 	if (!(hmacsha256_init(&digest, keybuf + 32, HMAC_KEY_SIZE))) {
 		__warning("Couldn't initialize HMAC-SHA256");
-		goto bailout;
+		goto release;
 	}
 
 	rc = ecc_new_data();
@@ -536,7 +536,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	if (!rc->data) {
 		if (errno == ENOMEM) 
 			__warning("Cannot allocate memory for `rc->data` in ecc_encrypt()");
-		goto bailout;
+		ecc_free_data(rc);
 	}
 
 	plaintext = (void *)(malloc(sizeof(char) * databytes));
@@ -544,7 +544,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	if (!plaintext) {
 		if (errno == ENOMEM)
 			__warning("Cannot allocate memory for `plaintext` in ecc_encrypt()");
-		goto bailout;
+		ecc_free_data(rc);
 	}
 	memcpy(plaintext, data, databytes);
 
@@ -575,7 +575,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	 */
 	gcry_md_close(digest);
 
-	bailout:
+	release:
 		gcry_free(keybuf);
 		point_release(P);
 		point_release(R);
