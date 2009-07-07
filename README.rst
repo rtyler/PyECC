@@ -13,3 +13,8 @@ install the PyECC module and corresponding library, you need to run::
     % sudo python setup.py install
 
 
+Author(s)
+---------
+
+PyECC was developed by R. Tyler Ballance (``tyler@slide.com``) at `Slide, Inc. <http://slide.com>`_. 
+The original seccure(1) binary however was developed by B. Poettering.
