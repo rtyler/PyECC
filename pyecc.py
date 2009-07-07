@@ -43,8 +43,7 @@ class ECC(object):
 
 
     def encrypt(self, plaintext):
-        assert plaintext, 'You cannot encrypt "nothing"'
-        return _pyecc.encrypt(plaintext, len(plaintext), self._kp, self._state)
+        return _pyecc.encrypt(plaintext, self._kp, self._state)
 
     def decrypt(self, ciphertext):
         assert ciphertext, 'You cannot decrypt "nothing"'
