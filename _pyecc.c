@@ -46,8 +46,7 @@ static void *_release_state(void *_state)
 {
     if (_state)
         ecc_free_state((ECC_State)(_state));
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 static PyObject *py_new_state(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -77,13 +76,15 @@ static PyObject *py_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     char *data;
     unsigned int datalen;
 
-    if (!PyArg_ParseTuple(args, "sIOO", &data, &datalen, &temp_keypair,
+    if (!PyArg_ParseTuple(args, "s#OO", &data, &datalen, &temp_keypair,
             &temp_state)) {
         return NULL;
     }
 
-    if (datalen <= 0)
-        Py_RETURN_NONE;
+    if (datalen <= 0) {
+        PyErr_SetString(PyExc_TypeError, "data can not have a length of zero");
+        return NULL;
+    }
 
     state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
     keypair = (ECC_KeyPair)(PyCObject_AsVoidPtr(temp_keypair));
