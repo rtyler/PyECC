@@ -90,6 +90,17 @@ class ECC_Decrypt_Tests(unittest.TestCase):
         decrypted = self.ecc.decrypt(encrypted)
         assert decrypted  == DEFAULT_PLAINTEXT
 
+class ECC_Fail(unittest.TestCase):
+    def setUp(self):
+        super(ECC_Fail, self).setUp()
+        self.ecc = pyecc.ECC(public=DEFAULT_PUBKEY, private=DEFAULT_PRIVKEY)
+
+    def test_EncryptNullByte(self):
+        rc = self.ecc.encrypt('\x00')
+        assert rc, (rc, 'Fail')
+
+    def test_EmptyString(self):
+        self.failUnlessRaises(TypeError, self.ecc.encrypt, '')
 
 class ECC_GC_Checks(unittest.TestCase):
     def setUp(self):
