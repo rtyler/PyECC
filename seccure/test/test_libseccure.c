@@ -254,11 +254,14 @@ void __test_encrypt()
 
 	g_assert(result != NULL);
 	g_assert(result->data != NULL);
-   
+
+	ecc_free_keypair(kp);
 
     kp = ecc_new_keypair(DEFAULT_PUBKEY, DEFAULT_PRIVKEY, state);
 
 	decrypted = ecc_decrypt(result, kp, state);
+	g_assert(decrypted != NULL);
+	g_assert(decrypted->data != NULL);
 	g_assert_cmpstr(DEFAULT_PLAINTEXT, ==, decrypted->data);
 
 	if (result)
