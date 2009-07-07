@@ -105,6 +105,10 @@ bool __init_ecc(ECC_State state)
 	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 
 	state->gcrypt_init = true;
+	if (__init_ecc_refcount != 0) {
+		fprintf(stderr, "We've attempted to re-initialize the secure memory pool?\n");
+	}
+	__init_ecc_refcount = 2;
 
 	return true;
 }
@@ -136,6 +140,7 @@ ECC_State ecc_new_state(ECC_Options opts)
 	bzero(state, sizeof(struct _ECC_State));
 
 	state->options = opts;
+	state->gcrypt_init = false;
 
 	if (!__init_ecc(state)) {
 		__warning("Failed to initialize libecc's state properly!");
@@ -150,7 +155,6 @@ ECC_State ecc_new_state(ECC_Options opts)
 
 void ecc_free_state(ECC_State state)
 {
-	gcry_error_t err = 0;
 	if (state == NULL)
 		return;
 	
@@ -162,12 +166,6 @@ void ecc_free_state(ECC_State state)
 	
 	if (state->gcrypt_init) {
 		__init_ecc_refcount--;
-
-		if (__init_ecc_refcount == 0) {
-			err = gcry_control(GCRYCTL_TERM_SECMEM);
-			if (gcry_err_code(err))
-				__gwarning("Failed to disable the secure memory pool in libgcrypt", err);
-		}
 	}
 
 	free(state);
