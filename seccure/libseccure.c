@@ -537,6 +537,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 		if (errno == ENOMEM) 
 			__warning("Cannot allocate memory for `rc->data` in ecc_encrypt()");
 		ecc_free_data(rc);
+		goto release;
 	}
 
 	plaintext = (void *)(malloc(sizeof(char) * databytes));
@@ -545,6 +546,7 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 		if (errno == ENOMEM)
 			__warning("Cannot allocate memory for `plaintext` in ecc_encrypt()");
 		ecc_free_data(rc);
+		goto release;
 	}
 	memcpy(plaintext, data, databytes);
 
