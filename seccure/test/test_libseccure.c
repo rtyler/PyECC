@@ -267,7 +267,7 @@ void __test_encrypt()
 	if (result)
 		ecc_free_data(result);
 	if (decrypted)
-		ecc_free_data(decrypted)
+		ecc_free_data(decrypted);
 
 	ecc_free_state(state);
 	ecc_free_keypair(kp);
