@@ -56,7 +56,7 @@ static PyObject *py_new_state(PyObject *self, PyObject *args, PyObject *kwargs)
     if (!PyCObject_Check(rc)) {
         if (state)
             ecc_free_state(state);
-        return NULL;
+        Py_RETURN_NONE;
     }
     return rc;
 }
@@ -176,7 +176,7 @@ static PyObject *py_new_keypair(PyObject *self, PyObject *args, PyObject *kwargs
     if (!PyCObject_Check(rc)) {
         if (kp)
             _release_keypair(kp);
-        return NULL;
+        Py_RETURN_NONE;
     }
     return rc;
 }
