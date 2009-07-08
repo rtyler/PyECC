@@ -87,6 +87,8 @@ int main(int argc, char **argv)
 	fprintf(stderr, "\n");
 
 	close(fd);
+	ecc_free_state(state);
+	ecc_free_keypair(keypair);
 
 	return 0;
 }
