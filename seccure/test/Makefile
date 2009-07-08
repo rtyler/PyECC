@@ -16,8 +16,9 @@ ENCCURVE = "p128"
 SIGCURVE = "p256"
 MACLEN = "64"
 
+TARGETS=test_libseccure test_gcrypt test_integration test_leaky
 
-default: encdec-test signveri-test signcrypt-test test_libseccure test_gcrypt test_integration
+default: encdec-test signveri-test signcrypt-test $(TARGETS)
 
 test_libseccure: 
 	$(CC) $(CFLAGS) $(LDFLAGS) test_libseccure.c -o test_libseccure
@@ -28,10 +29,12 @@ test_gcrypt:
 test_integration:
 	$(CC) $(CFLAGS) $(LDFLAGS) test_integration.c -o test_integration
 
+test_leaky:
+	$(CC) $(CFLAGS) $(LDFLAGS) test_leaky.c -o test_leaky
 
 clean:
-	rm -f test_libseccure test_gcrypt public-encryption-key public-signature-key \
-	message.enc message.aux message.sig test_integration
+	rm -f public-encryption-key public-signature-key \
+	message.enc message.aux message.sig $(TARGETS)
 
 rebuild: clean default
 
