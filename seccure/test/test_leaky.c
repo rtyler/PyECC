@@ -31,7 +31,7 @@
 
 #include "libseccure.h"
 
-#define LOOPS 100
+#define LOOPS 10
 #define MAX_SIZE 256 * 1024
 
 int main(int argc, char **argv)
@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 	ECC_KeyPair keypair = ecc_keygen(NULL, state);
 	ECC_Data encrypted = NULL;
 	unsigned int i = 0;
+	unsigned int j = 0;
 	size_t readbytes;
 	char *data = NULL;
 
@@ -56,29 +57,31 @@ int main(int argc, char **argv)
 
 	while (i < MAX_SIZE) {
 		i = i + 1024;
+		fflush(stderr);
 
-		data = (char *)(malloc(sizeof(char) * i));
-		readbytes = read(fd, (void *)(data), (size_t)(i));
-		if (readbytes <= 0) {
-			fprintf(stderr, "No data read! Bail!\n");
-			fprintf(stderr, "Error: %s\n", strerror(errno));
-			i = MAX_SIZE;
-			continue;
+		for (j = 0; j < LOOPS; ++j) {
+			data = (char *)(malloc(sizeof(char) * i));
+			readbytes = read(fd, (void *)(data), (size_t)(i));
+			if (readbytes <= 0) {
+				fprintf(stderr, "No data read! Bail!\n");
+				fprintf(stderr, "Error: %s\n", strerror(errno));
+				i = MAX_SIZE;
+				continue;
+			}
+			
+			encrypted = ecc_encrypt(data, i, keypair, state);
+
+			g_assert(data != NULL);
+			g_assert(encrypted != NULL);
+			g_assert(encrypted->data != NULL);
+
+			g_assert(0 != memcmp(encrypted->data, data, i));
+
+			ecc_free_data(encrypted);
+			free(data);
+			data = NULL;
 		}
-		
-		encrypted = ecc_encrypt(data, i, keypair, state);
-
 		fprintf(stderr, "%dKB, ", (i / 1024));
-
-		g_assert(data != NULL);
-		g_assert(encrypted != NULL);
-		g_assert(encrypted->data != NULL);
-
-		g_assert(0 != memcmp(encrypted->data, data, i));
-
-		ecc_free_data(encrypted);
-		free(data);
-		data = NULL;
 	}
 
 	fprintf(stderr, "\n");
