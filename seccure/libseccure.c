@@ -1,5 +1,7 @@
 /*
- *  libseccure - Copyright 2009 Slide, Inc.
+ * libseccure - Copyright 2009 Slide, Inc.
+ *
+ * http://slideinc.github.com/PyECC
  *
  * This library is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU Lesser General Public License 

@@ -1,6 +1,8 @@
 /*
  *  seccure  -  Copyright 2009 B. Poettering
  *
+ *  Maintained by R. Tyler Ballance <tyler@slide.com>
+ *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as
  *  published by the Free Software Foundation; either version 2 of the
@@ -20,7 +22,8 @@
 /* 
  *   SECCURE Elliptic Curve Crypto Utility for Reliable Encryption
  *
- *              http://point-at-infinity.org/seccure/
+ * Current homepage: http://slideinc.github.com/PyECC
+ * Original homepage: http://point-at-infinity.org/seccure/
  *
  *
  * seccure implements a selection of asymmetric algorithms based on  
@@ -30,9 +33,8 @@
  * This code links against the GNU gcrypt library "libgcrypt" (which
  * is part of the GnuPG project). Use the included Makefile to build
  * the binary.
- *
- * Report bugs to: seccure AT point-at-infinity.org
- *
+ * 
+ * Report bugs to: http://github.com/rtyler/PyECC/issues
  */
 
 #include <stdlib.h>
