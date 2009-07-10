@@ -23,7 +23,18 @@ sufficient to get basic :abbr:`ECC (Elliptical Curve Crypto)` incorporated into 
 Python application(s). 
 
 
+Attribution
+^^^^^^^^^^^
+
+**PyECC** was developed and maintained by R. Tyler Ballance <`tyler@slide.com`> for 
+`Slide, Inc. <http://www.slide.com>`_. It is based on `seccure(1) <http://point-at-infinity.org/seccure/>`_ 
+which was originally developed by `B. Poettering <http://point-at-infinity.org>`_. If you 
+have found bugs or would like to suggest features, please visit the `GitHub Issues page <http://github.com/rtyler/PyECC/issues>`_.
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+
+   libseccure.rst
+   _pyecc.rst
+   pyecc.rst
 

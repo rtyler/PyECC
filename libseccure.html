@@ -19,7 +19,9 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="PyECC v0.1 documentation" href="index.html" /> 
+    <link rel="top" title="PyECC v0.1 documentation" href="index.html" />
+    <link rel="next" title="_pyecc.c" href="_pyecc.html" />
+    <link rel="prev" title="Welcome to PyECC’s documentation!" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -28,11 +30,34 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pyecc.html" title="_pyecc.c"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyECC’s documentation!"
+             accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyECC v0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">libseccure</a><ul>
+<li><a class="reference external" href="#constants">Constants</a></li>
+<li><a class="reference external" href="#datatypes">Datatypes</a></li>
+<li><a class="reference external" href="#internal-functions">Internal Functions</a></li>
+<li><a class="reference external" href="#crypto-functions">Crypto Functions</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">Welcome to PyECC&#8217;s documentation!</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="_pyecc.html"
+                                  title="next chapter">_pyecc.c</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
               <li><a href="sources/libseccure.txt"
@@ -61,6 +86,61 @@
             
   <div class="section" id="libseccure">
 <h1>libseccure<a class="headerlink" href="#libseccure" title="Permalink to this headline">¶</a></h1>
+<p><strong>libseccure</strong> is a small, portable C library that handles abstracting much of the
+work involved with <abbr title="Elliptical Curve Crypto">
+ECC</abbr>.</p>
+<div class="section" id="constants">
+<h2>Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h2>
+<p id="default-curve"><strong>DEFAULT_CURVE</strong>:  <cite>p384</cite></p>
+<p id="default-mac-len"><strong>DEFAULT_MAC_LEN</strong>:  <cite>10</cite></p>
+</div>
+<div class="section" id="datatypes">
+<h2>Datatypes<a class="headerlink" href="#datatypes" title="Permalink to this headline">¶</a></h2>
+<p id="ecc-state"><strong>ECC_State</strong></p>
+<p>The <a class="reference internal" href="#ecc-state">ECC_State</a> object is passed from function to function in order to ensure some
+information about the curves, the state of the libgcrypt memory pools, etc are
+accessible.</p>
+<ul class="simple">
+<li><strong>bool</strong> <em>gcrypt_init</em>: set to <cite>true</cite> if the libgcrypt memory pool(s) and number generators have been properly initialized</li>
+<li><a class="reference internal" href="#ecc-options">ECC_Options</a> <em>options</em>: defaults to <cite>NULL</cite> but can be filled with an allocated <a class="reference internal" href="#ecc-options">ECC_Options</a> object</li>
+<li><strong>struct curveparams *</strong> <em>curveparams</em>: allocated <cite>curveparams</cite> structure, the contents of this struct are dependent on the curve loaded (defaults to <a class="reference internal" href="#default-curve">DEFAULT_CURVE</a>)</li>
+</ul>
+<p id="ecc-options"><strong>ECC_Options</strong></p>
+<ul class="simple">
+<li><strong>char *</strong> <em>curve</em>: string representation of the curve to use, defaults to <a class="reference internal" href="#default-curve">DEFAULT_CURVE</a></li>
+<li><strong>bool</strong> <em>secure_random</em>: enable/disable libgcrypt&#8217;s secure random number generator (defaults to <cite>true</cite>)</li>
+</ul>
+<p id="ecc-keypair"><strong>ECC_KeyPair</strong></p>
+<ul class="simple">
+<li><strong>gcry_mpi_t</strong> <em>priv</em>: numeric representation of the private key, use <a class="reference internal" href="#ecc-new-keypair">ecc_new_keypair</a> to properly generate this</li>
+<li><strong>void *</strong> <em>pub</em>: binary data representing the public key</li>
+<li><strong>unsigned int</strong> <em>pub_bytes</em>: number of bytes the <em>pub</em> member contains (as it&#8217;s not <cite>NULL</cite> terminated)</li>
+</ul>
+<p id="ecc-data"><strong>ECC_Data</strong></p>
+<ul class="simple">
+<li><strong>void *</strong> <em>data</em>: generic pointer referncing the memory containing data</li>
+<li><strong>unsigned int</strong> <em>datalen</em>: number of bytes the <em>data</em> member contains</li>
+</ul>
+</div>
+<div class="section" id="internal-functions">
+<h2>Internal Functions<a class="headerlink" href="#internal-functions" title="Permalink to this headline">¶</a></h2>
+<p id="ecc-new-state"><strong>ecc_new_state(</strong> <a class="reference internal" href="#ecc-options">ECC_Options</a> <cite>options</cite> <strong>)</strong></p>
+<p id="ecc-free-state"><strong>ecc_free_state(</strong> <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-new-keypair"><strong>ecc_new_keypair(</strong> <strong>char *</strong> <cite>publickey</cite>, <strong>char *</strong> <cite>privatekey</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-free-keypair"><strong>ecc_free_keypair(</strong> <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite> <strong>)</strong></p>
+<p id="ecc-new-options"><strong>ecc_new_options(void)</strong></p>
+<p id="ecc-new-data"><strong>ecc_new_data(void)</strong></p>
+<p id="ecc-free-data"><strong>ecc_free_data(</strong> <a class="reference internal" href="#ecc-data">ECC_Data</a> <cite>data</cite> <strong>)</strong></p>
+</div>
+<div class="section" id="crypto-functions">
+<h2>Crypto Functions<a class="headerlink" href="#crypto-functions" title="Permalink to this headline">¶</a></h2>
+<p id="ecc-mpi-to-str"><strong>ecc_mpi_to_str(</strong> <strong>gcry_mpi_t</strong> <cite>key</cite> <strong>)</strong></p>
+<p id="ecc-serialize-private-key"><strong>ecc_serialize_private_key(</strong> <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-encrypt"><strong>ecc_encrypt(</strong> <strong>void *</strong> <cite>data</cite>, <strong>int</strong> <cite>datalen</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-decrypt"><strong>ecc_decrypt(</strong> <a class="reference internal" href="#ecc-data">ECC_Data</a> <cite>data</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-sign"><strong>ecc_sign(</strong> <strong>char *</strong> <cite>data</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-verify"><strong>ecc_verify(</strong> <strong>char *</strong> <cite>data</cite>, <strong>char *</strong> <cite>signature</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+</div>
 </div>
 
 
@@ -75,6 +155,12 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="pyecc.html" title="_pyecc.c"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyECC’s documentation!"
+             >previous</a> |</li>
         <li><a href="index.html">PyECC v0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
