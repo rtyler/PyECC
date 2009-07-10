@@ -58,55 +58,55 @@ Internal Functions
 ------------------
 .. _ecc_new_state:
 
-**ecc_new_state(** ECC_Options_ `options` **)**
+ECC_State_ **ecc_new_state(** ECC_Options_ `options` **)**
 
 .. _ecc_free_state:
 
-**ecc_free_state(** ECC_State_ `state` **)**
+void **ecc_free_state(** ECC_State_ `state` **)**
 
 .. _ecc_new_keypair:
 
-**ecc_new_keypair(** **char *** `publickey`, **char *** `privatekey`, ECC_State_ `state` **)**
+ECC_KeyPair_ **ecc_new_keypair(** **char *** `publickey`, **char *** `privatekey`, ECC_State_ `state` **)**
 
 .. _ecc_free_keypair:
 
-**ecc_free_keypair(** ECC_KeyPair_ `keypair` **)**
+void **ecc_free_keypair(** ECC_KeyPair_ `keypair` **)**
 
 .. _ecc_new_options:
 
-**ecc_new_options(void)**
+ECC_Options_ **ecc_new_options(void)**
 
 .. _ecc_new_data:
 
-**ecc_new_data(void)**
+ECC_Data_ **ecc_new_data(void)**
 
 .. _ecc_free_data:
 
-**ecc_free_data(** ECC_Data_ `data` **)**
+void **ecc_free_data(** ECC_Data_ `data` **)**
 
 Crypto Functions
 ----------------
 
 .. _ecc_mpi_to_str:
 
-**ecc_mpi_to_str(** **gcry_mpi_t** `key` **)**
+const char * **ecc_mpi_to_str(** **gcry_mpi_t** `key` **)**
 
 .. _ecc_serialize_private_key:
 
-**ecc_serialize_private_key(** ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
+char * **ecc_serialize_private_key(** ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
 
 .. _ecc_encrypt:
 
-**ecc_encrypt(** **void *** `data`, **int** `datalen`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
+ECC_Data_ **ecc_encrypt(** **void *** `data`, **int** `datalen`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
 
 .. _ecc_decrypt:
 
-**ecc_decrypt(** ECC_Data_ `data`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
+ECC_Data_ **ecc_decrypt(** ECC_Data_ `data`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
 
 .. _ecc_sign:
 
-**ecc_sign(** **char *** `data`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
+ECC_Data_ **ecc_sign(** **char *** `data`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
 
 .. _ecc_verify:
 
-**ecc_verify(** **char *** `data`, **char *** `signature`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**
+bool **ecc_verify(** **char *** `data`, **char *** `signature`, ECC_KeyPair_ `keypair`, ECC_State_ `state` **)**

@@ -124,22 +124,22 @@ accessible.</p>
 </div>
 <div class="section" id="internal-functions">
 <h2>Internal Functions<a class="headerlink" href="#internal-functions" title="Permalink to this headline">¶</a></h2>
-<p id="ecc-new-state"><strong>ecc_new_state(</strong> <a class="reference internal" href="#ecc-options">ECC_Options</a> <cite>options</cite> <strong>)</strong></p>
-<p id="ecc-free-state"><strong>ecc_free_state(</strong> <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
-<p id="ecc-new-keypair"><strong>ecc_new_keypair(</strong> <strong>char *</strong> <cite>publickey</cite>, <strong>char *</strong> <cite>privatekey</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
-<p id="ecc-free-keypair"><strong>ecc_free_keypair(</strong> <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite> <strong>)</strong></p>
-<p id="ecc-new-options"><strong>ecc_new_options(void)</strong></p>
-<p id="ecc-new-data"><strong>ecc_new_data(void)</strong></p>
-<p id="ecc-free-data"><strong>ecc_free_data(</strong> <a class="reference internal" href="#ecc-data">ECC_Data</a> <cite>data</cite> <strong>)</strong></p>
+<p id="ecc-new-state"><a class="reference internal" href="#ecc-state">ECC_State</a> <strong>ecc_new_state(</strong> <a class="reference internal" href="#ecc-options">ECC_Options</a> <cite>options</cite> <strong>)</strong></p>
+<p id="ecc-free-state">void <strong>ecc_free_state(</strong> <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-new-keypair"><a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <strong>ecc_new_keypair(</strong> <strong>char *</strong> <cite>publickey</cite>, <strong>char *</strong> <cite>privatekey</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-free-keypair">void <strong>ecc_free_keypair(</strong> <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite> <strong>)</strong></p>
+<p id="ecc-new-options"><a class="reference internal" href="#ecc-options">ECC_Options</a> <strong>ecc_new_options(void)</strong></p>
+<p id="ecc-new-data"><a class="reference internal" href="#ecc-data">ECC_Data</a> <strong>ecc_new_data(void)</strong></p>
+<p id="ecc-free-data">void <strong>ecc_free_data(</strong> <a class="reference internal" href="#ecc-data">ECC_Data</a> <cite>data</cite> <strong>)</strong></p>
 </div>
 <div class="section" id="crypto-functions">
 <h2>Crypto Functions<a class="headerlink" href="#crypto-functions" title="Permalink to this headline">¶</a></h2>
-<p id="ecc-mpi-to-str"><strong>ecc_mpi_to_str(</strong> <strong>gcry_mpi_t</strong> <cite>key</cite> <strong>)</strong></p>
-<p id="ecc-serialize-private-key"><strong>ecc_serialize_private_key(</strong> <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
-<p id="ecc-encrypt"><strong>ecc_encrypt(</strong> <strong>void *</strong> <cite>data</cite>, <strong>int</strong> <cite>datalen</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
-<p id="ecc-decrypt"><strong>ecc_decrypt(</strong> <a class="reference internal" href="#ecc-data">ECC_Data</a> <cite>data</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
-<p id="ecc-sign"><strong>ecc_sign(</strong> <strong>char *</strong> <cite>data</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
-<p id="ecc-verify"><strong>ecc_verify(</strong> <strong>char *</strong> <cite>data</cite>, <strong>char *</strong> <cite>signature</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-mpi-to-str">const char * <strong>ecc_mpi_to_str(</strong> <strong>gcry_mpi_t</strong> <cite>key</cite> <strong>)</strong></p>
+<p id="ecc-serialize-private-key">char * <strong>ecc_serialize_private_key(</strong> <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-encrypt"><a class="reference internal" href="#ecc-data">ECC_Data</a> <strong>ecc_encrypt(</strong> <strong>void *</strong> <cite>data</cite>, <strong>int</strong> <cite>datalen</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-decrypt"><a class="reference internal" href="#ecc-data">ECC_Data</a> <strong>ecc_decrypt(</strong> <a class="reference internal" href="#ecc-data">ECC_Data</a> <cite>data</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-sign"><a class="reference internal" href="#ecc-data">ECC_Data</a> <strong>ecc_sign(</strong> <strong>char *</strong> <cite>data</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
+<p id="ecc-verify">bool <strong>ecc_verify(</strong> <strong>char *</strong> <cite>data</cite>, <strong>char *</strong> <cite>signature</cite>, <a class="reference internal" href="#ecc-keypair">ECC_KeyPair</a> <cite>keypair</cite>, <a class="reference internal" href="#ecc-state">ECC_State</a> <cite>state</cite> <strong>)</strong></p>
 </div>
 </div>
 
