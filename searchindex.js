@@ -1,0 +1,1 @@
+Search.setIndex({desctypes:{},terms:{quickstart:0,creat:0,modul:0,tabl:0,direct:0,indic:0,file:0,toctre:0,your:0,index:0,welcom:0,least:0,should:0,content:0,master:0,adapt:0,you:0,document:0,complet:0,pyecc:0,jul:0,search:0,sphinx:0,like:0,thu:0,can:0,thi:0,contain:0,root:0,page:0},titles:["Welcome to PyECC&#8217;s documentation!"],modules:{},descrefs:{},filenames:["index"]})
