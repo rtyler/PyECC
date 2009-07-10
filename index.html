@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to PyECC’s documentation! &mdash; PyECC vv0.1 documentation</title>
+    <title>Welcome to PyECC’s documentation! &mdash; PyECC v0.1 documentation</title>
     <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     'v0.1',
+        VERSION:     '0.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="PyECC vv0.1 documentation" href="" /> 
+    <link rel="top" title="PyECC v0.1 documentation" href="" /> 
   </head>
   <body>
     <div class="related">
@@ -28,7 +28,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="">PyECC vv0.1 documentation</a> &raquo;</li> 
+        <li><a href="">PyECC v0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -36,9 +36,11 @@
             <h3><a href="">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="">Welcome to PyECC&#8217;s documentation!</a><ul>
+<li><a class="reference external" href="#introduction">Introduction</a><ul>
 </ul>
 </li>
-<li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
 </ul>
 
             <h3>This Page</h3>
@@ -69,17 +71,26 @@
             
   <div class="section" id="welcome-to-pyecc-s-documentation">
 <h1>Welcome to PyECC&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyecc-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Contents:</p>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><strong>PyECC</strong> is a small, simple and fast solution for incorporating <a class="reference external" href="http://en.wikipedia.org/wiki/Elliptic_curve_cryptography">Elliptical Curve Cryptography</a>
+into any Python project. The benefits to using <abbr title="Elliptical Curve Crypto">
+ECC</abbr> in your
+Python projects is that it&#8217;s small and very fast, meaning it&#8217;s ideal for real-time
+cryptography of both large and small pieces of data. PyECC itself is split into
+effectively three primary components:</p>
+<ul class="simple">
+<li><a class="reference external" href="libseccure.html"><em>libseccure</em></a> is the lower level C-library that was built utilizing the source from the <a class="reference external" href="http://point-at-infinity.org/seccure/">seccure(1)</a> binary.</li>
+<li><a class="reference external" href="_pyecc.html"><em>_pyecc.c</em></a> wraps <a class="reference external" href="libseccure.html"><em>libseccure</em></a> with a series of <em>pythonic</em> functions that provide a series of less-than-user-friendly hooks into the underlying crypto primitives</li>
+<li><a class="reference external" href="pyecc.html"><em>pyecc.py</em></a> provides the <cite>ECC</cite> class which can be instantiated with a few options and provides simple access to encrypt/decrypt/sign/verify functionality</li>
+</ul>
+<p>For the average user, knowledge of what <a class="reference external" href="pyecc.html"><em>pyecc.py</em></a> can do for you is more than likely
+sufficient to get basic <abbr title="Elliptical Curve Crypto">
+ECC</abbr> incorporated into your
+Python application(s).</p>
 <ul class="simple">
 </ul>
 </div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference external" href="modindex.html"><em>Module Index</em></a></li>
-<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
-</ul>
 </div>
 
 
@@ -94,7 +105,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="">PyECC vv0.1 documentation</a> &raquo;</li> 
+        <li><a href="">PyECC v0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
