@@ -1,5 +1,13 @@
+
+PLATFORM=`uname -o`
 LDFLAGS += -lgcrypt 
 CFLAGS += -g -Wall -fPIC -O0 -Wstrict-prototypes -pthread -fno-strict-aliasing
+
+ifeq ($(PLATFORM), darwin)
+CFLAGS += -dynamiclib
+else
+CFLAGS += -shared
+endif
 
 default: binaries doc libseccure.so
 
@@ -36,7 +44,7 @@ seccure-key: seccure.o $(OBJS)
 	strip seccure-key
 
 libseccure.so: $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -Wl -o libseccure.so $(OBJS) 
+	$(CC) $(CFLAGS) $(LDFLAGS) -Wl -o libseccure.so $(OBJS) 
 
 seccure-encrypt: seccure-key
 	ln -f seccure-key seccure-encrypt
