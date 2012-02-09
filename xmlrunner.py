@@ -17,7 +17,7 @@ import unittest
 from StringIO import StringIO
 from xml.sax.saxutils import escape
 
-from StringIO import StringIO
+
 
 
 class _TestInfo(object):
