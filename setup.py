@@ -25,7 +25,7 @@ base_modules = [
         libraries=['gcrypt'],
         include_dirs=['/usr/include', '/usr/local/include',],
         library_dirs=['/usr/local/lib', '/usr/local/lib64',],
-        extra_compile_args=['-Wall', '-Werror',]),
+        extra_compile_args=['-Wall']),
 ]
 
 packages = ['pyecc']
