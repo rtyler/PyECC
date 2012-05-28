@@ -105,11 +105,12 @@ ECC_State PyCObject \
 ";
 static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    PyObject *temp_state, *temp_keypair;
+    PyObject *temp_state, *temp_keypair, *retval;
     ECC_State state;
     ECC_KeyPair keypair;
     ECC_Data encrypted;
     char *data;
+    char *dcopy;
     int datalen;
 
     if (!PyArg_ParseTuple(args, "s#OO", &data, &datalen, &temp_keypair,
@@ -120,8 +121,14 @@ static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     state = (ECC_State)(PyCObject_AsVoidPtr(temp_state));
     keypair = (ECC_KeyPair)(PyCObject_AsVoidPtr(temp_keypair));
     
+    if (!(dcopy = (char *)malloc(datalen))) { /* Make a copy of the encrypted input because ecc_decrypt is going to stomp on it */
+      Py_RETURN_NONE;
+    }
+
+    memcpy(dcopy, data, datalen);
+
     encrypted = ecc_new_data();
-    encrypted->data = data;
+    encrypted->data = dcopy;	/* Use the copy */
     encrypted->datalen = datalen;
 
     ECC_Data result = ecc_decrypt(encrypted, keypair, state);
@@ -129,7 +136,9 @@ static PyObject *py_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     if ( (result == NULL) || (result->data == NULL) )
         Py_RETURN_NONE;
 
-    return PyString_FromStringAndSize((char *)(result->data), result->datalen);
+    retval = (PyObject *) PyString_FromStringAndSize((char *)(result->data), result->datalen);
+    free(dcopy);
+    return retval;
 }
 
 static char new_keypair_doc[] = "\
