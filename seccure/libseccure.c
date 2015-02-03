@@ -57,8 +57,12 @@ bool __verify_keypair(ECC_KeyPair keypair, bool require_private, bool require_pu
 			return false;
 	}
 	if (require_public) {
+		    #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Wparentheses"
+            #pragma clang diagnostic ignored "-Wconversion"
 		if ( (keypair->pub == NULL) )
-			return false;
+			#pragma clang diagnostic pop
+			return false;    
 	}
 	return true;
 }
@@ -470,8 +474,11 @@ ECC_Data ecc_encrypt(void *data, int databytes, ECC_KeyPair keypair, ECC_State s
 	void *plaintext = NULL;
 	unsigned int offset = 0;
 	gcry_md_hd_t digest;
-
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wparentheses"
+    #pragma clang diagnostic ignored "-Wconversion"
 	if ( (data == NULL) ) {
+	#pragma clang diagnostic pop
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		goto exit;
 	}
@@ -679,7 +686,11 @@ bool ecc_verify(char *data, char *signature, ECC_KeyPair keypair, ECC_State stat
 	/*
 	 * Preliminary argument checks, just for sanity of the library
 	 */
+	#pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wparentheses"
+    #pragma clang diagnostic ignored "-Wconversion"
 	if ( (data == NULL) ) {
+		#pragma clang diagnostic pop
 		__warning("Invalid or empty `data` argument passed to ecc_verify()");
 		goto exit;
 	}
