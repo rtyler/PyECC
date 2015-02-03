@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: PyECC
+Version: 1.0
+Summary: A CPython module to enable Elliptical Curve Cryptography in Python
+Home-page: UNKNOWN
+Author: R. Tyler Ballance
+Author-email: tyler@monkeypox.org
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
